@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RADIO DAYS – Web Demo</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background:#0a0a0a;
+  display:flex; flex-direction:column; align-items:center;
+  padding:24px 16px 28px;
+  font-family:'Courier New',monospace; color:#555;
+}
+h1  { color:#ffa000; font-size:.95rem; letter-spacing:.2em; margin-bottom:3px; }
+.sub{ font-size:.65rem; color:#444; margin-bottom:16px; }
+canvas {
+  display:block; outline:none; cursor:pointer;
+  border:2px solid #1e1e1e;
+  /* render at 240×135, scale up 3× with sharp pixels */
+  width:720px; height:405px;
+  image-rendering:pixelated;
+  image-rendering:crisp-edges;
+  max-width:100%;
+}
+.keys {
+  margin-top:12px; font-size:.68rem; color:#444; text-align:center; line-height:2;
+}
+kbd {
+  background:#1a1a1a; border:1px solid #3a3a3a; border-radius:3px;
+  padding:1px 5px; color:#777; font-family:'Courier New',monospace; font-size:.68rem;
+}
+.note {
+  margin-top:10px; font-size:.6rem; color:#333;
+  max-width:480px; text-align:center; line-height:1.8;
+}
+</style>
+</head>
+<body>
+<h1>RADIO DAYS</h1>
+<p class="sub">M5Stack Cardputer ADV + Unit Encoder U135</p>
+<canvas id="screen" width="240" height="135" tabindex="0"></canvas>
+<div class="keys">
+  <kbd>←</kbd><kbd>→</kbd> 選局 &ensp;
+  <kbd>Space</kbd> 再生 / 停止 &ensp;
+  <kbd>Shift</kbd>+<kbd>←</kbd><kbd>→</kbd> 音量 &ensp;
+  <kbd>L</kbd> Location を変える<br>
+  ダイヤルをスクロール・クリックでも操作できます
+</div>
+<div class="note">
+  ※ ストリームは HTTP です。Finder から HTML ファイルをダブルクリックして Safari で開くと音が出ます。<br>
+  Chrome の場合は Terminal で <code>python3 -m http.server 8080</code> → <code>localhost:8080/radiodays-web.html</code>
+</div>
+
+<script>
+// ============================================================
+//  RADIO DAYS  Web Demo  –  RadioDays_U10
+//  Canvas: 240×135 device pixels, CSS-scaled ×3 (pixelated)
+// ============================================================
+
+// ---- Station data (stations.h) ----
+const LOCS = [
+  { name:"JAPAN",   city:"TOKYO",      lat:35.68, lon:139.69, hasM:true,  tz: 9, stations:[
+    {name:"Shonan Beach FM",    url:"http://shonanbeachfm.out.airtime.pro:8000/shonanbeachfm_a"},
+    {name:"FM Setagaya",        url:"http://fmsetagaya834.out.airtime.pro:8000/fmsetagaya834_a"},
+    {name:"OTTAVA",             url:"http://ottava2.out.airtime.pro:8000/ottava2_a"},
+    {name:"FM Kahoku",          url:"http://radio.kahoku.net:8000/;"},
+    {name:"Otsuchi Seashore",   url:"http://mp3s.nc.u-tokyo.ac.jp/OTSUCHI_CyberForest.mp3"},
+  ]},
+  { name:"USA",     city:"NEW YORK",   lat:40.71, lon:-74.01, hasM:true,  tz:-5, stations:[
+    {name:"WNYC",               url:"http://fm939.wnyc.org/wnycfm"},
+    {name:"WFUV",               url:"http://wfuv-onair.streamguys.org/onair-hi"},
+    {name:"WQXR",               url:"http://stream.wqxr.org/wqxr"},
+    {name:"WBGO",               url:"http://ais-sa8.cdnstream1.com/3629_128.mp3"},
+    {name:"WFMU",               url:"http://stream0.wfmu.org/freeform-128k"},
+    {name:"KEXP",               url:"http://kexp-mp3-128.streamguys1.com/kexp128.mp3"},
+  ]},
+  { name:"UK",      city:"LONDON",     lat:51.51, lon:-0.13,  hasM:true,  tz: 0, stations:[
+    {name:"BBC World Service",  url:"http://stream.live.vc.bbcmedia.co.uk/bbc_world_service"},
+    {name:"Heart London",       url:"http://media-ice.musicradio.com/HeartLondonMP3"},
+    {name:"Radio X London",     url:"http://media-ice.musicradio.com/RadioXLondonMP3"},
+    {name:"LBC London",         url:"http://media-ice.musicradio.com/LBCLondonMP3"},
+    {name:"Classic FM",         url:"http://media-ice.musicradio.com:80/ClassicFMMP3"},
+    {name:"Capital London",     url:"http://media-ice.musicradio.com/CapitalMP3"},
+    {name:"Radio Caroline",     url:"http://sc6.radiocaroline.net:8040/stream"},
+  ]},
+  { name:"FRANCE",  city:"PARIS",      lat:48.86, lon:2.35,   hasM:true,  tz: 1, stations:[
+    {name:"France Inter",       url:"http://icecast.radiofrance.fr/franceinter-midfi.mp3"},
+    {name:"FIP",                url:"http://icecast.radiofrance.fr/fip-midfi.mp3"},
+    {name:"RTL",                url:"http://icecast.rtl.fr/rtl-1-44-128"},
+    {name:"Radio Nova",         url:"http://novazz.ice.infomaniak.ch/novazz-128.mp3"},
+    {name:"France Culture",     url:"http://icecast.radiofrance.fr/franceculture-midfi.mp3"},
+    {name:"Skyrock",            url:"http://icecast.skyrock.net/s/natio_mp3_128k"},
+    {name:"TSF Jazz",           url:"http://tsfjazz.ice.infomaniak.ch/tsfjazz-high.mp3"},
+  ]},
+  { name:"WORLD",   city:"EVERYWHERE", lat:0,     lon:0,      hasM:false, tz: 9, stations:[
+    {name:"Radio Paradise",     url:"http://stream.radioparadise.com/mp3-128"},
+    {name:"Radio Swiss Jazz",   url:"http://stream.srg-ssr.ch/m/rsj/mp3_128"},
+    {name:"RNZ National",       url:"http://radionz-ice.streamguys.com/national.mp3"},
+    {name:"Groove Salad",       url:"http://ice1.somafm.com/groovesalad-128-mp3"},
+    {name:"Secret Agent",       url:"http://ice1.somafm.com/secretagent-128-mp3"},
+    {name:"Nightwave Plaza",    url:"http://radio.plaza.one/mp3"},
+  ]},
+  { name:"GERMANY", city:"BERLIN",     lat:52.52, lon:13.40,  hasM:true,  tz: 1, stations:[
+    {name:"Deutschlandfunk",    url:"http://st01.sslstream.dlf.de/dlf/01/128/mp3/stream.mp3"},
+    {name:"SWR3",               url:"http://dispatcher.rndfnk.com/swr/swr3/live/mp3/128/stream.mp3"},
+    {name:"DLF Kultur",         url:"http://st02.sslstream.dlf.de/dlf/02/128/mp3/stream.mp3"},
+    {name:"radioeins",          url:"http://dispatcher.rndfnk.com/rbb/radioeins/live/mp3/mid"},
+    {name:"1LIVE",              url:"http://wdr-1live-live.icecast.wdr.de/wdr/1live/live/mp3/128/stream.mp3"},
+    {name:"Antenne Bayern",     url:"http://mp3channels.webradio.antenne.de/antenne"},
+  ]},
+  { name:"ITALY",   city:"ROME",       lat:41.90, lon:12.50,  hasM:true,  tz: 1, stations:[
+    {name:"Radio 24",           url:"http://shoutcast2.radio24.it:8000/;"},
+    {name:"Radio 105",          url:"http://icecast.unitedradio.it/Radio105.mp3"},
+    {name:"Radio Radicale",     url:"http://live.radioradicale.it/live.mp3"},
+    {name:"Radio Monte Carlo",  url:"http://icecast.unitedradio.it/RMC.mp3"},
+    {name:"Virgin Radio Italia",url:"http://icecast.unitedradio.it/Virgin.mp3"},
+  ]},
+];
+
+// Dial ring/position math (mirrors stations.h)
+function rdRing(n){ return 30*Math.floor((2*n+1)/3); }
+function rdPos(i,n){ return Math.floor((2*i+1)*rdRing(n)/(2*n)); }
+LOCS.forEach(loc=>{
+  const n=loc.stations.length;
+  loc.ring=rdRing(n);
+  loc.stations.forEach((s,i)=>{ s.freq=800+rdPos(i,n); });
+});
+
+// ---- App state ----
+const app = {
+  locIdx: 4, stIdx: 0,   // default: WORLD, Radio Paradise
+  freq: 0, tgtFreq: 0,   // dial position (ring steps, offset from 800)
+  level: 0,              // level meter 0-1
+  wavePhase: 0,          // 0=left lit, 1=right lit
+  waveLast:  0,
+  locCursor: 4,
+  audioSt: 'idle',       // idle | loading | playing | error
+  screen: 'radio',       // radio | location
+  prevT: 0,              // timestamp of previous frame
+  vol: 75,               // 0–100
+};
+app.freq = app.tgtFreq = LOCS[app.locIdx].stations[app.stIdx].freq;
+
+// ---- Colors (from firmware + preview images) ----
+const C = {
+  bg:    '#000',
+  green: 'rgb(0,200,0)',    // most UI text (AUTO, PLAYING, n/N, footer)
+  amber: 'rgb(255,160,0)',  // RADIO DAYS, clock
+  white: 'rgb(220,220,220)',// station name
+  dim:   'rgb(0,120,0)',    // dimmed green
+  ivory: 'rgb(240,234,214)',
+  bOD: 'rgb(70,70,70)', bOL: 'rgb(200,200,200)',
+  bID: 'rgb(40,40,40)', bIL: 'rgb(150,150,150)',
+  tickL:'rgb(200,190,160)', tickS:'rgb(120,120,120)', base:'rgb(150,145,132)',
+  mark: 'rgb(200,80,0)',
+  tower:'rgb(150,150,145)', towerD:'rgb(95,95,92)',
+  wave: 'rgb(255,150,60)',  waveW:'rgb(110,62,28)',
+  mG:   'rgb(50,180,50)',   mY:'rgb(210,170,0)', mR:'rgb(200,40,40)',
+};
+
+// ---- Canvas ----
+const cv  = document.getElementById('screen');
+const ctx = cv.getContext('2d');
+ctx.imageSmoothingEnabled = false;
+cv.focus();
+
+// Pixel helpers (unscaled — canvas IS 240×135)
+function fr(x,y,w,h,c){ ctx.fillStyle=c; ctx.fillRect(x,y,w,h); }
+function px(x,y,c)     { ctx.fillStyle=c; ctx.fillRect(x,y,1,1); }
+function tx(s,x,y,c,sz,bold){
+  ctx.fillStyle=c;
+  ctx.font=`${bold?'bold ':''  }${sz||6}px 'Courier New',monospace`;
+  ctx.textBaseline='top'; ctx.fillText(s,x,y);
+}
+
+// ---- HTML5 Audio ----
+const aud = new Audio(); aud.preload='none';
+
+// Web Audio API for static noise
+let wCtx=null, noiseNode=null, noiseGain=null;
+
+function ensureWebAudio(){
+  if(wCtx) return;
+  wCtx=new(window.AudioContext||window.webkitAudioContext)();
+  const sr=wCtx.sampleRate, buf=wCtx.createBuffer(1,sr*2,sr);
+  const d=buf.getChannelData(0);
+  for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*0.25;
+  noiseNode=wCtx.createBufferSource(); noiseNode.buffer=buf; noiseNode.loop=true;
+  noiseGain=wCtx.createGain(); noiseGain.gain.value=0;
+  noiseNode.connect(noiseGain); noiseGain.connect(wCtx.destination);
+  noiseNode.start();
+}
+function setNoise(vol){ if(!noiseGain)return; noiseGain.gain.setTargetAtTime(vol,wCtx.currentTime,0.08); }
+
+function audioPlay(url){
+  ensureWebAudio(); if(wCtx.state==='suspended') wCtx.resume();
+  aud.pause(); aud.src=url; aud.volume=app.vol/100; app.audioSt='loading';
+  const ok=()=>{ aud.play().then(()=>app.audioSt='playing').catch(()=>app.audioSt='error'); aud.removeEventListener('canplay',ok); };
+  const er=()=>{ app.audioSt='error'; aud.removeEventListener('error',er); };
+  aud.addEventListener('canplay',ok); aud.addEventListener('error',er); aud.load();
+}
+function audioStop(){
+  aud.pause(); aud.src=''; app.audioSt='idle'; app.level=0; setNoise(0);
+}
+
+// ---- Render ----
+function render(){
+  fr(0,0,240,135,C.bg);
+  if(app.screen==='location'){ renderLoc(); return; }
+  renderTitle(); renderMeter(); renderRight(); renderDial(); renderTowers();
+  renderStName(); renderStatus(); renderFooter();
+}
+
+function renderTitle(){
+  tx('RADIO DAYS',4,2,C.amber,8);
+  tx(app.auto?'AUTO':'MANUAL',155,2,C.green,7);
+}
+
+// Level meter x6–27, y20–65 (22×46, 8 segs)
+function renderMeter(){
+  const x=6,y=20,w=21,h=46,n=8,sh=Math.floor(h/n);
+  const lit=Math.round(app.level*n);
+  for(let i=0;i<n;i++){
+    const sy=y+h-(i+1)*sh;
+    const c=i<5?C.mG:i<7?C.mY:C.mR;
+    fr(x,sy,w,sh-1, i<lit?c:'rgb(10,10,10)');
+  }
+}
+
+// Right panel: date, clock, sky  x176–237
+function renderRight(){
+  const tz=LOCS[app.locIdx].tz;
+  const now=new Date();
+  const loc=new Date(now.getTime()+(tz*60+now.getTimezoneOffset())*60000);
+  const pad=n=>String(n).padStart(2,'0');
+  const date=`${loc.getFullYear()}.${pad(loc.getMonth()+1)}.${pad(loc.getDate())}`;
+  const time=`${pad(loc.getHours())}:${pad(loc.getMinutes())}:${pad(loc.getSeconds())}`;
+  tx(date,176,20,C.green,6); tx(time,176,29,C.amber,9);
+  renderSky(loc.getHours()+loc.getMinutes()/60);
+}
+
+// Sky window x176–237, y45–69
+// Lunar phase 0=new 0.5=full
+function lunarPhase(){
+  const jd0=2451549.5; // 2000-01-06 00:00 UTC new moon
+  const jd=2440587.5+Date.now()/86400000;
+  const cyc=29.530589;
+  return ((jd-jd0)%cyc+cyc)%cyc/cyc;
+}
+
+// Bresenham line for face
+function line(x0,y0,x1,y1,c){
+  const dx=Math.abs(x1-x0),dy=Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1;
+  let err=dx-dy;
+  for(;;){px(x0,y0,c);if(x0===x1&&y0===y1)break;const e2=2*err;if(e2>-dy){err-=dy;x0+=sx;}if(e2<dx){err+=dx;y0+=sy;}}
+}
+
+// Exact port of firmware drawFace(cx,cy,ink) — same pixel positions
+function drawFirmwareFace(cx,cy,c){
+  line(cx-6,cy-4,cx-4,cy-5,c); line(cx-4,cy-5,cx-2,cy-4,c); // left brow
+  line(cx+2,cy-4,cx+4,cy-5,c); line(cx+4,cy-5,cx+6,cy-4,c); // right brow
+  line(cx-6,cy-2,cx-4,cy-3,c); line(cx-4,cy-3,cx-2,cy-2,c); px(cx-4,cy-2,c); // left eye
+  line(cx+2,cy-2,cx+4,cy-3,c); line(cx+4,cy-3,cx+6,cy-2,c); px(cx+4,cy-2,c); // right eye
+  line(cx,cy-1,cx-1,cy+2,c); line(cx-1,cy+2,cx,cy+3,c); line(cx,cy+3,cx+2,cy+2,c); // nose
+  px(cx,cy+4,c); // philtrum
+  line(cx-2,cy+5,cx,cy+4,c); line(cx,cy+4,cx+2,cy+5,c); // upper lip
+  line(cx-2,cy+6,cx,cy+7,c); line(cx,cy+7,cx+2,cy+6,c); // lower lip
+}
+
+// Phased moon with face
+function drawMoon(cx,cy,r,phase){
+  const litC='rgb(230,224,194)', darkC='rgb(6,8,24)', faceC='rgb(33,65,33)';
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx,cy,r+0.5,0,2*Math.PI); ctx.clip();
+  ctx.fillStyle=darkC; ctx.beginPath(); ctx.arc(cx,cy,r,0,2*Math.PI); ctx.fill();
+  if(phase>0.02 && phase<0.98){
+    const wax=phase<0.5;
+    const termXr=r*Math.abs(Math.cos(2*Math.PI*phase));
+    ctx.fillStyle=litC; ctx.beginPath();
+    if(wax) ctx.arc(cx,cy,r,-Math.PI/2,Math.PI/2,false);
+    else    ctx.arc(cx,cy,r,Math.PI/2,-Math.PI/2,false);
+    ctx.closePath(); ctx.fill();
+    if(termXr>0.3){
+      const cresc=wax?(phase<0.25):(phase>0.75);
+      if(cresc){
+        ctx.fillStyle=darkC; ctx.beginPath();
+        if(wax) ctx.ellipse(cx,cy,termXr,r,0,-Math.PI/2,Math.PI/2,false);
+        else    ctx.ellipse(cx,cy,termXr,r,0,Math.PI/2,-Math.PI/2,false);
+        ctx.closePath(); ctx.fill();
+      } else {
+        ctx.fillStyle=litC; ctx.beginPath();
+        if(wax) ctx.ellipse(cx,cy,termXr,r,0,Math.PI/2,-Math.PI/2,false);
+        else    ctx.ellipse(cx,cy,termXr,r,0,-Math.PI/2,Math.PI/2,false);
+        ctx.closePath(); ctx.fill();
+      }
+    }
+  }
+  ctx.restore();
+  drawFirmwareFace(cx,cy,faceC);
+}
+
+function renderSky(h){
+  const x=176,y=45,w=62,ht=25;
+  const isDay=h>=7&&h<19;
+  const t=isDay?'rgb(80,130,220)':'rgb(5,5,28)';
+  const b=isDay?'rgb(130,190,235)':'rgb(12,12,45)';
+  const g=ctx.createLinearGradient(0,y,0,y+ht);
+  g.addColorStop(0,t); g.addColorStop(1,b);
+  fr(x,y,w,ht,C.bg); ctx.fillStyle=g; ctx.fillRect(x,y,w,ht);
+
+  const scx=x+31, scy=y+12; // center of sky window
+  if(isDay){
+    // Clip rays to sky window border
+    ctx.save(); ctx.beginPath(); ctx.rect(x,y,w,ht); ctx.clip();
+    // 16 rays alternating r=11/12 from base r=10 (matches firmware drawSun)
+    for(let i=0;i<16;i++){
+      const a=i*(2*Math.PI/16), r2=(i%2===0)?12:11;
+      const x0=Math.round(scx+10*Math.cos(a)), y0=Math.round(scy+10*Math.sin(a));
+      const x1=Math.round(scx+r2*Math.cos(a)), y1=Math.round(scy+r2*Math.sin(a));
+      line(x0,y0,x1,y1,'rgb(255,200,30)');
+    }
+    // Sun circle
+    ctx.fillStyle='rgb(246,214,107)'; // 0xF6AD
+    ctx.beginPath(); ctx.arc(scx,scy,9,0,Math.PI*2); ctx.fill();
+    // Sun outline
+    ctx.strokeStyle='rgb(33,65,33)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.arc(scx,scy,9,0,Math.PI*2); ctx.stroke();
+    ctx.restore();
+    drawFirmwareFace(scx,scy,'rgb(33,65,33)'); // firmware-exact face
+    // Small clouds at edges
+    ctx.fillStyle='rgba(255,255,255,0.65)';
+    ctx.beginPath(); ctx.ellipse(x+7, y+18,5,2.5,0,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(x+56,y+7, 4,2,  0,0,Math.PI*2); ctx.fill();
+  } else {
+    drawMoon(scx,scy,10,lunarPhase());
+    [[x+6,y+5],[x+13,y+18],[x+55,y+4],[x+58,y+18]].forEach(([sx,sy])=>px(sx,sy,'rgb(220,220,200)'));
+  }
+}
+
+// Dial: outer bevel x30–173 y18–93; face x32–171 y20–91; needle x=101
+function renderDial(){
+  const loc=LOCS[app.locIdx], ring=loc.ring, cs=app.freq-800, nx=101;
+  // Bevel
+  fr(30,18,144,1,C.bOD); fr(30,18,1,76,C.bOD);
+  fr(30,93,144,1,C.bOL); fr(173,18,1,76,C.bOL);
+  fr(31,19,142,1,C.bID); fr(31,19,1,74,C.bID);
+  fr(31,92,142,1,C.bIL); fr(172,19,1,74,C.bIL);
+  // Ivory face
+  fr(32,20,140,72,C.ivory);
+  // Tick rows y40,56,72,88
+  const rows=[{y:40,sh:2,lo:4},{y:56,sh:3,lo:6},{y:72,sh:4,lo:8},{y:88,sh:6,lo:10}];
+  for(let off=-36;off<=36;off++){
+    const rs=((cs+off)%ring+ring)%ring, x=nx+off*2;
+    if(x<32||x>171) continue;
+    rows.forEach(r=>{
+      px(x,r.y,C.base);
+      const lo=(Math.round(rs)%5===0), len=lo?r.lo:r.sh;
+      for(let t=1;t<=len;t++) px(x,r.y-t,lo?C.tickL:C.tickS);
+    });
+  }
+  // Station marks (downward wedge y21–23)
+  loc.stations.forEach(st=>{
+    const ss=st.freq-800;
+    for(let w=ss-ring;w<=ss+ring;w+=ring){
+      const x=nx+(w-cs)*2;
+      if(x<32||x>171) continue;
+      px(x,21,C.mark); fr(x-1,22,3,1,C.mark); fr(x-2,23,5,1,C.mark);
+    }
+  });
+  // Needle
+  fr(101,24,1,68,C.needle); fr(102,24,1,68,'rgb(90,25,15)');
+}
+
+// Towers: left x6–24 y71–94, right x197–215 y71–94
+function renderTowers(){
+  let ws='off';
+  if(app.audioSt==='playing') ws=app.wavePhase===0?'left':'right';
+  else if(app.audioSt==='loading') ws='weak';
+  drawTower(15,75,ws,'left');
+  drawTower(206,75,ws,'right');
+}
+
+function drawTower(cx,topY,ws,side){
+  const bot=topY+19;
+  // Legs
+  for(let i=0;i<=19;i++){
+    px(cx-Math.round(4*i/19), topY+i, C.towerD);
+    px(cx+Math.round(4*i/19), topY+i, C.towerD);
+  }
+  // Mast
+  for(let y=topY;y<=bot;y++) px(cx,y,C.tower);
+  // 3 crossbars
+  [0.25,0.5,0.75].forEach(f=>{
+    const by=Math.round(topY+19*f), bw=Math.round(4*f);
+    fr(cx-bw,by,bw*2+1,1,C.tower);
+  });
+  // Zigzag bracing
+  [[0.15,0.4,false],[0.4,0.65,true],[0.65,0.9,false]].forEach(([f0,f1,flip])=>{
+    const y0=Math.round(topY+19*f0),y1=Math.round(topY+19*f1);
+    const x0a=cx+(flip?-Math.round(4*f0):-Math.round(4*f1));
+    const x1a=cx+(flip? Math.round(4*f1): Math.round(4*f0));
+    const n=Math.max(Math.abs(x1a-x0a),Math.abs(y1-y0));
+    for(let t=0;t<=n;t++) px(Math.round(x0a+(x1a-x0a)*t/n),Math.round(y0+(y1-y0)*t/n),C.towerD);
+  });
+  // Waves (only draw if lit — never draw BG-color over tower)
+  const isLit=(ws==='left'&&side==='left')||(ws==='right'&&side==='right');
+  const wc=ws==='weak'?C.waveW:isLit?C.wave:null;
+  if(wc){
+    [5,9].forEach(r=>{
+      for(let deg=-30;deg<=30;deg+=5){
+        const rad=deg*Math.PI/180;
+        px(cx-Math.round(r*Math.cos(rad)),topY-Math.round(r*Math.sin(rad)),wc);
+        px(cx+Math.round(r*Math.cos(rad)),topY-Math.round(r*Math.sin(rad)),wc);
+      }
+    });
+  }
+}
+
+// Station name y96–111
+function renderStName(){
+  const isTuning = app.freq!==app.tgtFreq;
+  const name = isTuning ? 'TUNING...' : LOCS[app.locIdx].stations[app.stIdx].name;
+  ctx.font=`bold 10px 'Courier New',monospace`;
+  ctx.fillStyle=isTuning?C.dim:C.white; ctx.textBaseline='top';
+  const tw=ctx.measureText(name).width;
+  ctx.fillText(name, Math.max(6,(240-tw)/2), 96);
+}
+
+// Status line y114–121
+function renderStatus(){
+  const isTuning=app.freq!==app.tgtFreq;
+  let st='STOPPED';
+  if(isTuning) st='TUNING...';
+  else if(app.audioSt==='playing') st='PLAYING';
+  else if(app.audioSt==='loading') st='BUFFERING...';
+  else if(app.audioSt==='error')   st='UNAVAILABLE';
+  const col=app.audioSt==='playing'?C.green:isTuning?C.dim:C.green;
+  tx(st,4,114,col,7);
+  const nN=`${app.stIdx+1}/${LOCS[app.locIdx].stations.length}`;
+  tx(nN,155,114,C.green,7);
+  tx(`VOL ${app.vol}%`,183,114,C.green,7);
+}
+
+// Footer y126–133
+function renderFooter(){
+  fr(0,126,240,9,'rgb(20,20,20)');
+  tx(LOCS[app.locIdx].name,4,127,C.amber,6);
+  const ws={idle:'---',loading:'CONNECTING',playing:'WI-FI OK',error:'ERROR'}[app.audioSt];
+  tx(ws,56,127,C.dim,6);
+  tx('[S+←→]VOL [SPC]PLAY [L]LOC',88,127,C.dim,6);
+}
+
+// ---- Location screen with globe ----
+// Simplified orthographic globe projection
+const LAND_PTS=[  // rough continent outline sample points [lat, lon]
+  // Europe
+  [71,28],[64,24],[61,5],[51,2],[43,6],[37,9],[36,28],[46,34],[55,26],[63,26],[71,28],
+  // Africa
+  [37,10],[20,17],[5,10],[-5,12],[-20,14],[-35,18],[-30,30],[-10,37],[10,42],[22,37],[30,32],[37,10],
+  // Asia
+  [40,26],[36,36],[38,59],[43,76],[55,73],[65,90],[70,100],[55,140],[45,135],[35,129],[25,121],[12,109],[5,100],[22,90],[28,65],[26,57],[40,52],[40,26],
+  // Americas
+  [65,-165],[60,-150],[48,-124],[40,-124],[25,-110],[20,-87],[8,-77],[-5,-80],[-20,-65],[-35,-57],[-55,-65],[-40,-73],[-25,-43],[-3,-35],[8,-60],[15,-62],[20,-73],[25,-80],[35,-75],[40,-74],[45,-64],[50,-55],[60,-64],[65,-75],[65,-165],
+  // Australia
+  [-15,136],[-25,114],[-32,115],[-35,137],[-38,146],[-37,150],[-28,154],[-20,148],[-15,136],
+];
+
+function orthoProject(lat,lon,cLat,cLon,r){
+  const latR=lat*Math.PI/180, lonR=lon*Math.PI/180;
+  const cLatR=cLat*Math.PI/180, cLonR=cLon*Math.PI/180;
+  const cosc=Math.sin(cLatR)*Math.sin(latR)+Math.cos(cLatR)*Math.cos(latR)*Math.cos(lonR-cLonR);
+  if(cosc<0) return null;
+  return [
+    r*Math.cos(latR)*Math.sin(lonR-cLonR),
+   -r*(Math.cos(cLatR)*Math.sin(latR)-Math.sin(cLatR)*Math.cos(latR)*Math.cos(lonR-cLonR))
+  ];
+}
+
+function renderLoc(){
+  fr(0,0,240,135,C.bg);
+  tx('LOCATION',4,3,C.amber,7);
+  // Globe (left half)
+  const gcx=58, gcy=65, gr=50;
+  // Ocean
+  ctx.fillStyle='rgb(12,25,70)'; ctx.beginPath(); ctx.arc(gcx,gcy,gr,0,Math.PI*2); ctx.fill();
+  // Determine globe center: midpoint of selected (or default 40°N, 30°E)
+  const sel=LOCS[app.locCursor];
+  const cLat=sel.hasM?sel.lat:40, cLon=sel.hasM?sel.lon:30;
+
+  // Land dots
+  ctx.fillStyle='rgb(30,90,30)';
+  for(let i=0;i<LAND_PTS.length-1;i++){
+    const p0=LAND_PTS[i], p1=LAND_PTS[i+1];
+    if(Math.abs(p1[1]-p0[1])>90) continue; // skip wrap-around lines
+    const a=orthoProject(p0[0],p0[1],cLat,cLon,gr);
+    const b=orthoProject(p1[0],p1[1],cLat,cLon,gr);
+    if(!a||!b) continue;
+    ctx.strokeStyle='rgb(35,100,35)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(gcx+a[0],gcy+a[1]); ctx.lineTo(gcx+b[0],gcy+b[1]); ctx.stroke();
+  }
+
+  // Grid lines (lat every 30°, lon every 45°)
+  ctx.strokeStyle='rgba(60,60,150,0.5)'; ctx.lineWidth=0.5;
+  for(let lat=-60;lat<=60;lat+=30){
+    ctx.beginPath();
+    for(let lon=-180;lon<=180;lon+=5){
+      const p=orthoProject(lat,lon,cLat,cLon,gr); if(!p) continue;
+      lon===-180||!orthoProject(lat,lon-5,cLat,cLon,gr)?ctx.moveTo(gcx+p[0],gcy+p[1]):ctx.lineTo(gcx+p[0],gcy+p[1]);
+    }
+    ctx.stroke();
+  }
+  for(let lon=-135;lon<=180;lon+=45){
+    ctx.beginPath();
+    for(let lat=-80;lat<=80;lat+=5){
+      const p=orthoProject(lat,lon,cLat,cLon,gr); if(!p) continue;
+      lat===-80?ctx.moveTo(gcx+p[0],gcy+p[1]):ctx.lineTo(gcx+p[0],gcy+p[1]);
+    }
+    ctx.stroke();
+  }
+
+  // Globe border
+  ctx.strokeStyle='rgb(40,40,80)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.arc(gcx,gcy,gr,0,Math.PI*2); ctx.stroke();
+
+  // Location markers
+  LOCS.forEach((loc,i)=>{
+    if(!loc.hasM) return;
+    const p=orthoProject(loc.lat,loc.lon,cLat,cLon,gr); if(!p) return;
+    const isSel=i===app.locCursor;
+    ctx.fillStyle=isSel?C.amber:'rgb(180,80,0)';
+    ctx.beginPath(); ctx.arc(gcx+p[0],gcy+p[1],isSel?3:1.5,0,Math.PI*2); ctx.fill();
+    if(isSel){
+      ctx.strokeStyle=C.amber; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.arc(gcx+p[0],gcy+p[1],5,0,Math.PI*2); ctx.stroke();
+    }
+  });
+
+  // Right panel: selected location info (x 116–239, mirrors firmware drawLocationInfo)
+  fr(116,14,124,112,C.bg);
+  fr(114,14,1,112,'rgb(30,20,0)');
+  const rX=118;
+  ctx.font="bold 10px 'Courier New',monospace";
+  ctx.fillStyle=C.amber; ctx.textBaseline='top';
+  ctx.fillText(sel.name,rX,18);
+  if(app.locCursor===app.locIdx) tx('(now)',rX+sel.name.length*7,28,C.dim,6);
+  tx(sel.city,rX,38,C.white,6);
+  tx(sel.stations.length+' stations',rX,50,C.dim,6);
+  tx(sel.stations[0].name.substring(0,17),rX,62,C.dim,6);
+  if(sel.stations.length>1)
+    tx((sel.stations[1].name.length>14?sel.stations[1].name.substring(0,14)+'...':sel.stations[1].name),rX,72,C.dim,6);
+  tx((app.locCursor+1)+' / '+LOCS.length,rX,86,C.dim,6);
+  fr(0,126,240,9,'rgb(20,20,20)');
+  tx('[UP/DN] select  [ENTER/L] confirm',4,127,C.dim,6);
+}
+
+// ---- Update ----
+function update(now){
+  const dt=Math.min(now-(app.prevT||now), 100); // ms, capped at 100
+  app.prevT=now;
+
+  // Time-based tuning: 20 steps per second
+  if(app.freq!==app.tgtFreq){
+    const d=app.tgtFreq-app.freq;
+    const move=Math.sign(d)*Math.min(Math.abs(d), 20*dt/1000);
+    app.freq+=move;
+    if(Math.abs(app.freq-app.tgtFreq)<0.3) app.freq=app.tgtFreq;
+    // Static noise during tuning
+    const ratio=Math.abs(app.tgtFreq-app.freq)/Math.max(1,Math.abs(app.tgtFreq-app.freq)+2);
+    setNoise(0.35*ratio);
+  } else {
+    setNoise(0);
+  }
+
+  // Level meter
+  if(app.audioSt==='playing'){
+    app.level+=(0.4+0.55*Math.random()-app.level)*0.1;
+  } else {
+    app.level*=0.88; if(app.level<0.01) app.level=0;
+  }
+
+  // Wave alternation every 800ms
+  if(app.audioSt==='playing'){
+    if(now-app.waveLast>800){ app.wavePhase=1-app.wavePhase; app.waveLast=now; }
+  } else { app.wavePhase=0; app.waveLast=0; }
+}
+
+function loop(now){ update(now); render(); requestAnimationFrame(loop); }
+requestAnimationFrame(loop);
+
+// ---- Input ----
+cv.addEventListener('keydown',e=>{
+  ensureWebAudio && (() => { try{ ensureWebAudio(); }catch(_){} })();
+  if(app.screen==='location') keyLoc(e); else keyRadio(e);
+  e.preventDefault();
+});
+cv.addEventListener('mousedown',()=>{ cv.focus(); try{ensureWebAudio();}catch(_){} });
+
+function keyRadio(e){
+  const loc=LOCS[app.locIdx];
+  switch(e.key){
+    case 'ArrowRight':case 'ArrowUp':
+      if(e.shiftKey) setVol(app.vol+5);
+      else if(app.stIdx<loc.stations.length-1) tune(app.stIdx+1);
+      break;
+    case 'ArrowLeft':case 'ArrowDown':
+      if(e.shiftKey) setVol(app.vol-5);
+      else if(app.stIdx>0) tune(app.stIdx-1);
+      break;
+    case ' ':case 'Enter': togglePlay(); break;
+    case 'l':case 'L': app.locCursor=app.locIdx; app.screen='location'; break;
+    case '-':case '_': setVol(app.vol-5); break;
+    case '+':case '=': setVol(app.vol+5); break;
+  }
+}
+function keyLoc(e){
+  switch(e.key){
+    case 'ArrowDown': app.locCursor=(app.locCursor+1)%LOCS.length; break;
+    case 'ArrowUp':   app.locCursor=(app.locCursor+LOCS.length-1)%LOCS.length; break;
+    case 'Enter':case 'l':case 'L': confirmLoc(); break;
+    case 'Escape': app.screen='radio'; break;
+  }
+}
+function setVol(v){
+  app.vol=Math.max(0,Math.min(100,Math.round(v/5)*5));
+  aud.volume=app.vol/100;
+}
+function tune(si){
+  if(app.stIdx===si) return;
+  app.stIdx=si; app.tgtFreq=LOCS[app.locIdx].stations[si].freq;
+  audioStop();
+}
+function togglePlay(){
+  if(app.freq!==app.tgtFreq) return;
+  if(app.audioSt==='playing'||app.audioSt==='loading') audioStop();
+  else audioPlay(LOCS[app.locIdx].stations[app.stIdx].url);
+}
+function confirmLoc(){
+  if(app.locCursor!==app.locIdx){
+    audioStop(); app.locIdx=app.locCursor; app.stIdx=0;
+    app.freq=app.tgtFreq=LOCS[app.locIdx].stations[0].freq;
+  }
+  app.screen='radio';
+}
+
+// Click
+cv.addEventListener('click',e=>{
+  const r=cv.getBoundingClientRect();
+  const ux=(e.clientX-r.left)*240/r.width, uy=(e.clientY-r.top)*135/r.height;
+  if(app.screen==='location'){
+    const i=Math.floor((uy-15)/17);
+    if(i>=0&&i<LOCS.length){ app.locCursor=i; confirmLoc(); }
+    return;
+  }
+  if(ux>=30&&ux<=173&&uy>=18&&uy<=93){ togglePlay(); return; }
+  if(uy>=96&&uy<=120){ togglePlay(); return; }
+  if(uy>=126&&ux>=4&&ux<=55){ app.locCursor=app.locIdx; app.screen='location'; }
+});
+
+// Scroll wheel on dial
+cv.addEventListener('wheel',e=>{
+  if(app.screen!=='radio') return;
+  const r=cv.getBoundingClientRect();
+  const ux=(e.offsetX||e.clientX-r.left)*240/r.width, uy=(e.offsetY||e.clientY-r.top)*135/r.height;
+  if(ux<30||ux>173||uy<18||uy>93) return;
+  const loc=LOCS[app.locIdx];
+  if(e.deltaY>0&&app.stIdx<loc.stations.length-1) tune(app.stIdx+1);
+  if(e.deltaY<0&&app.stIdx>0) tune(app.stIdx-1);
+  e.preventDefault();
+},{passive:false});
+</script>
+</body>
+</html>

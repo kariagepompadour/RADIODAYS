@@ -33,18 +33,20 @@ Read more about the inspiration and design principles in [docs/concept.md](docs/
 - **Travel by radio:** Choose from seven Locations on a globe. The default lineup contains 42 stations, personally selected by the maker—not a popularity ranking.
 - **An old-school dial:** An ivory four-row tuning scale, fixed pointer, station markers, LED-style level meter, and two little radio towers whose signals blink alternately.
 - **A world on the screen:** Local time for each Location's representative city, a day and night sky, the sun and moon. WORLD uses Japan time.
-- **Two ways to listen:** The Cardputer's own 2.4 GHz Wi-Fi—no computer needed—or a USB relay, in which a Mac receives the stream and passes the MP3 data to the Cardputer over USB.
+- **Two ways to listen:** The Cardputer's own 2.4 GHz Wi-Fi—no computer needed—or a USB relay, in which a Mac or Windows PC receives the stream and passes the MP3 data to the Cardputer over USB.
 - **Make it yours:** Edit the station and Location definitions in the source, then rebuild the firmware.
 
 ![U10 screen playing FM Setagaya, showing the ivory tuning scale and radio towers](docs/images/RADIODAYS_3.jpeg)
 
 ![USA Location selection screen, showing the globe, New York, and six stations](docs/images/RADIODAYS_4.jpeg)
 
+**Want to see it in action first? [Try the web demo.](https://kariagepompadour.github.io/RADIODAYS/radiodays-web.html)** Runs in your browser — no hardware needed.
+
 ## What you need
 
 - **M5Stack Cardputer ADV.** Keyboard controls are available even without an encoder.
 - **M5Stack Unit Encoder (U135)** for dial control, connected to the Cardputer ADV Grove port. No extra soldering or electronics work is required.
-- **A way to receive streams:** compatible 2.4 GHz Wi-Fi (the Cardputer alone is enough), or a USB connection to a Mac running the macOS-only relay script.
+- **A way to receive streams:** compatible 2.4 GHz Wi-Fi (the Cardputer alone is enough), or a USB connection to a Mac or Windows PC running the relay script.
 - **Optional 3D-printed stand and knob.** The application works without them.
 
 ## Installing U10
@@ -129,7 +131,20 @@ Use this where the Cardputer cannot join a Wi-Fi network. A Mac receives the str
 4. Until the relay answers, the screen shows `USB RELAY REQUIRED` / `Start the relay on your computer.`
 5. To stop the relay, press Control-C or close the Terminal window.
 
-**The U9 filename is intentional: `RadioDaysRelay_U9.command` is also the relay used by U10** (the text inside the script says U9; U10 uses the same link protocol and stations). The script uses Perl, curl, and caffeinate included with macOS, keeps the Mac awake while it runs, and accepts only the hosts of the default stations. **Windows and Linux are not supported and have not been tested.** No Mac Internet Sharing or network configuration changes are needed.
+**The U9 filename is intentional: `RadioDaysRelay_U9.command` is also the relay used by U10** (the text inside the script says U9; U10 uses the same link protocol and stations). The script uses Perl, curl, and caffeinate included with macOS, keeps the Mac awake while it runs, and accepts only the hosts of the default stations. **Linux is not supported and has not been tested.** No Mac Internet Sharing or network configuration changes are needed.
+
+### Through a Windows USB relay
+
+The Windows relay does the same job as the Mac relay, with the same allowed hosts and safety rules. It runs on **Windows PowerShell, which comes with Windows**; nothing needs to be installed. The author has checked it on **Windows 11**.
+
+You need **both** files, in the same folder: [`tools/usb-relay/RadioDaysRelay_U9_Windows.cmd`](tools/usb-relay/RadioDaysRelay_U9_Windows.cmd) and [`tools/usb-relay/RadioDaysRelay_U9_Windows.ps1`](tools/usb-relay/RadioDaysRelay_U9_Windows.ps1). Get them with **Code → Download ZIP** on GitHub (or `git clone`), or download each with **Download raw file**.
+
+1. Connect the Cardputer to the PC with a USB **data** cable and start RADIO DAYS. Close any other program using its COM port (for example the Arduino IDE Serial Monitor).
+2. Double-click `RadioDaysRelay_U9_Windows.cmd`. A window opens and the relay finds the Cardputer's COM port by itself. If it does not, start it from a command prompt as `RadioDaysRelay_U9_Windows.cmd --port COM5` (the number shown in Device Manager under *Ports (COM & LPT)*).
+3. On the Cardputer START screen, press `U`, as with the Mac relay.
+4. To stop the relay, press Control-C or close the window.
+
+The `.cmd` file starts the script with `-ExecutionPolicy Bypass` for that one run only; no setting of the PC is changed. On PCs where scripts are blocked by policy (for example at work), the relay cannot run; follow local rules. Details: [docs/usb-relay-windows.md](docs/usb-relay-windows.md) (Japanese).
 
 ### Controls
 
@@ -178,8 +193,9 @@ Station definitions are in [`stations.h`](firmware/RadioDays_U10/stations.h). Se
 | USB-relay playback and screen design on a Cardputer ADV | **Checked on hardware by the author** |
 | Installing `merged.bin` with M5Burner over USB, start-up and operation | **Checked on hardware by the author** |
 | Installing the app-only `.bin` with the Launcher | Same procedure as earlier versions (checked up to Stage 2-1); not separately recorded for U10 |
+| Windows USB relay (Windows 11): COM port found automatically, no Cardputer reset on start, several stations, clock, reconnection after replugging the cable | **Checked by the author** |
 | Wi-Fi playback with U10 | **Not recorded as tested** |
-| Long-term stability | **Not verified** |
+| Long-term stability (Windows USB relay) | **30+ minutes of uninterrupted playback confirmed by the author** |
 
 The comment at the top of `RadioDays_U10.ino` still reads “Not yet run on hardware”. The U10 source is kept unchanged as a fixed version (it is covered by `SHA256SUMS.txt`), so this README and [docs/usb-u10.md](docs/usb-u10.md) record the current status. The control list in that comment also dates from an earlier stage; use the table above.
 
@@ -211,7 +227,7 @@ The default lineup is the maker's selection. You can replace stations or add Loc
 3. **Recalculate frequencies when the station count changes.** Run, for example, `python3 tools/freq-calc/freq_calc.py 6` to obtain `810, 830, 850, 870, 890, 910`. Update **all** `freq` values in that Location. Array order determines dial order and the `n/N` station number.
 4. **Add a Location after WORLD.** The definition includes an uppercase ASCII name (up to seven characters), city, latitude/longitude, `true`, `800`, `RD_DIAL_MAX(table)`, table, `RD_COUNT(table)`, and time zone. Do not change the names or positions of the first five Locations (JAPAN, USA, UK, FRANCE, WORLD). Update the `LOCATION_COUNT == 7` check at the end of `stations.h`.
 5. **Build and check the size.** Invalid frequencies, overly long names, and inconsistent Location counts stop the build with an error. Keep the binary within 1,376,256 bytes.
-6. **Update the USB relay allowlist if needed.** Create `tools/usb-relay/allowed_hosts.txt`, with one `host:port` per line; for variable redirect hosts, use `redirect *.example.com:80`. **A custom allowlist replaces the built-in list**, so include existing stations' hosts as well. Check URLs with `perl tools/usb-relay/RadioDaysRelay_U9.command --check-url <URL>` or `--check-redirect <URL>`. IP-address URLs and URLs longer than 300 characters are rejected.
+6. **Update the USB relay allowlist if needed.** Create `tools/usb-relay/allowed_hosts.txt`, with one `host:port` per line; for variable redirect hosts, use `redirect *.example.com:80`. **A custom allowlist replaces the built-in list**, so include existing stations' hosts as well. Both the Mac and the Windows relay read this file from their own folder. Check URLs with `perl tools/usb-relay/RadioDaysRelay_U9.command --check-url <URL>` or `--check-redirect <URL>` (on Windows: `RadioDaysRelay_U9_Windows.cmd --check-url <URL>`). IP-address URLs and URLs longer than 300 characters are rejected.
 7. **Redistributing a modified binary?** Follow the GPL license terms below.
 
 ## Optional 3D-printed parts
@@ -231,6 +247,7 @@ RADIO DAYS works without these printed parts.
 
 Most design and development notes are **in Japanese**.
 
+- [Web demo](https://kariagepompadour.github.io/RADIODAYS/radiodays-web.html) — interactive browser simulation of the Cardputer display (no hardware needed)
 - [Concept and design principles](docs/concept.md)
 - [Design specification](docs/design.md) and [development plan](docs/development-plan.md)
 - [U10 implementation and test notes](docs/usb-u10.md) and [U9 station/USB-relay notes](docs/usb-u9.md)
@@ -291,7 +308,8 @@ The table below retains the original Japanese descriptions of historical records
 | [docs/stage-2-0-size.md](docs/stage-2-0-size.md) | Stage 2-0 容量の試作の結果 |
 | [docs/CHANGELOG.md](docs/CHANGELOG.md) | 変更履歴 |
 | `tools/make_globe_land.py` | 地球儀の地図を作るスクリプト |
-| `tools/usb-relay/` | USB中継スクリプト（`RadioDaysRelay_U9.command`、`allowed_hosts.txt` で許可ホストを指定） |
+| `tools/usb-relay/` | USB中継スクリプト（Mac：`RadioDaysRelay_U9.command`、Windows：`RadioDaysRelay_U9_Windows.cmd`／`.ps1`、`allowed_hosts.txt` で許可ホストを指定） |
+| [docs/usb-relay-windows.md](docs/usb-relay-windows.md)、`tools/usb-relay-windows-test/` | Windows用のUSB中継（Mac版との違い、試験、Windows 11での確認） |
 | `firmware/RadioDays_U10/`、`tools/u10-test/`、`tools/u10-preview/`、`tools/freq-calc/` | U10（`run_u10_test.sh`：文字盤・残像・電波塔の試験。`make_u10_preview.sh`：U10のコードで描いた画面の見本。`make_face_tower_preview_u10.py`：文字盤・電波塔の設計プレビュー。`freq_calc.py`：`freq` の計算）。**`tools/u10-test/` と `tools/u10-preview/` は公開していない旧版（`firmware/RadioDays_U9/`、`tools/u9-test/`、`tools/dial-preview/`）を使うため、作者の開発環境でのみ動きます** |
 
 </details>

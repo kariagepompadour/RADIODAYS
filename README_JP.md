@@ -33,18 +33,20 @@
 - **世界を巡る**：地球儀から7つのLocationを選択。標準で42局を収録（作者による選定で、人気ランキングではありません）。
 - **レトロな画面**：アイボリーの4段ダイヤル、固定指針、局の目印、LEDレベルメーター、交互に点灯する2つの電波塔。
 - **空と時刻**：Locationの代表都市の時刻、昼夜の空、太陽と月などを表示。WORLDの時計は日本時間。
-- **2つの聴き方**：Cardputer自身の2.4 GHz Wi-Fi（パソコン不要）、またはMacがストリームを受信し、MP3のデータをUSBでCardputerへ送る中継方式。
+- **2つの聴き方**：Cardputer自身の2.4 GHz Wi-Fi（パソコン不要）、またはMacかWindows PCがストリームを受信し、MP3のデータをUSBでCardputerへ送る中継方式。
 - **自分好みに改造**：放送局とLocationはソースから変更可能（再ビルドが必要）。
 
 ![U10の実機画面。FM Setagayaを再生中。アイボリーの4段ダイヤルと電波塔](docs/images/RADIODAYS_3.jpeg)
 
 ![USAのLocation選択画面。地球儀とNEW YORK、6局の表示](docs/images/RADIODAYS_4.jpeg)
 
+**まずはウェブ版で試せます。[ウェブデモを開く →](https://kariagepompadour.github.io/RADIODAYS/radiodays-web.html)** ブラウザで動きます。実機不要。
+
 ## 用意するもの
 
 - **M5Stack Cardputer ADV**。U135がなくてもキーボードで操作できます。
 - **M5Stack Unit Encoder（U135）**：ダイヤル操作に使用。Cardputer ADVのGroveポートへ接続。追加のはんだ付けなどは不要です。
-- **音声を受信する環境**：対応する2.4 GHz Wi-Fi（Cardputerだけで聴けます）、またはUSBケーブルで接続したMac（macOS専用の中継スクリプトを使用）。
+- **音声を受信する環境**：対応する2.4 GHz Wi-Fi（Cardputerだけで聴けます）、またはUSBケーブルで接続したMacかWindows PC（中継スクリプトを使用）。
 - **3Dプリントの台座・ノブ（任意）**：後述。なくても動作します。
 
 ## U10の導入
@@ -129,7 +131,20 @@ CardputerをWi-Fiにつなげない場所で使います。Macが自分のネッ
 4. 中継が応答するまでは `USB RELAY REQUIRED` / `Start the relay on your computer.` と表示されます。
 5. 中継を止めるには、Control-Cを押すか、ターミナルのウィンドウを閉じます。
 
-**ファイル名にU9とありますが、U10でも使用する正式な中継スクリプトです**（スクリプト内の説明もU9のままです。U10は通信の方式も局もU9と同じです）。macOSに標準搭載のPerl・curl・caffeinateを使用し、動作中はMacをスリープさせず、標準の局のホストだけを許可します。**Windows・Linuxには対応しておらず、動作確認もしていません。** Macのインターネット共有など、ネットワーク設定の変更は不要です。
+**ファイル名にU9とありますが、U10でも使用する正式な中継スクリプトです**（スクリプト内の説明もU9のままです。U10は通信の方式も局もU9と同じです）。macOSに標準搭載のPerl・curl・caffeinateを使用し、動作中はMacをスリープさせず、標準の局のホストだけを許可します。**Linuxには対応しておらず、動作確認もしていません。** Macのインターネット共有など、ネットワーク設定の変更は不要です。
+
+### Windows経由のUSB中継で聴く
+
+Windows版の中継は、Mac版と同じ働きをします（許可するホストと安全の決まりも同じ）。**Windowsに標準で入っているWindows PowerShell**で動くので、インストールは不要です。作者が **Windows 11** で動作を確認しています。
+
+[`tools/usb-relay/RadioDaysRelay_U9_Windows.cmd`](tools/usb-relay/RadioDaysRelay_U9_Windows.cmd) と [`tools/usb-relay/RadioDaysRelay_U9_Windows.ps1`](tools/usb-relay/RadioDaysRelay_U9_Windows.ps1) の**2つのファイルを同じフォルダ**に置いて使います。GitHubの **Code → Download ZIP**（または `git clone`）で入手するか、それぞれを **Download raw file** でダウンロードしてください。
+
+1. CardputerをUSB**データ**ケーブルでPCにつなぎ、RADIO DAYSを起動します。同じCOMポートを使う他のプログラム（Arduino IDEのシリアルモニタなど）は閉じてください。
+2. `RadioDaysRelay_U9_Windows.cmd` をダブルクリックします。ウィンドウが開き、中継がCardputerのCOMポートを自動で見つけます。見つからない場合は、コマンドプロンプトから `RadioDaysRelay_U9_Windows.cmd --port COM5` のように起動します（番号はデバイスマネージャーの「ポート (COM と LPT)」で確認）。
+3. CardputerのSTART画面で、Mac版と同じく `U` を押します。
+4. 中継を止めるには、Control-Cを押すか、ウィンドウを閉じます。
+
+`.cmd` は、その1回の起動に限って `-ExecutionPolicy Bypass` でスクリプトを実行します。PCの設定は変えません。会社のPCなど、規則でスクリプトの実行が禁止されている場合は動きません。その場所の規則に従ってください。詳細は [docs/usb-relay-windows.md](docs/usb-relay-windows.md)。
 
 ### 操作
 
@@ -178,8 +193,9 @@ CardputerをWi-Fiにつなげない場所で使います。Macが自分のネッ
 | Cardputer ADVでのUSB中継による再生と画面デザイン | **作者が実機で確認済み** |
 | M5BurnerによるUSBでのmerged.binの書き込み、起動、動作 | **作者が実機で確認済み** |
 | Launcherでのapp-only `.bin` の導入 | 旧版と同じ手順（Stage 2-1まで実機で確認）。U10としての記録はなし |
+| Windows版のUSB中継（Windows 11）：COMポートの自動検出、起動時にCardputerがリセットされない、複数局の切り替え、時計、ケーブルの抜き差し後の再接続 | **作者が確認済み** |
 | U10でのWi-Fiによる再生 | **確認の記録なし** |
-| 長時間の安定性 | **未確認** |
+| 長時間の安定性（Windows版USB中継） | **作者が30分以上途切れなく再生できることを確認済み** |
 
 `RadioDays_U10.ino` 冒頭のコメントは「Not yet run on hardware」のままです。U10のソースは保存版として変更しない（`SHA256SUMS.txt` の対象）ため、現在の状況はこのREADMEと [docs/usb-u10.md](docs/usb-u10.md) に記録しています。同じコメントの操作一覧も古い段階のものなので、上の操作表を使ってください。
 
@@ -211,7 +227,7 @@ RADIO DAYSの標準構成は作者の選定です。好きな局や地域へ変�
 3. **周波数を再計算**：局数が変わったら、そのLocationのすべての `freq` を変更します。例：`python3 tools/freq-calc/freq_calc.py 6` → `810, 830, 850, 870, 890, 910`。配列順がダイヤルの並びと `n/N` 表示の順番です。
 4. **Locationを追加**：WORLDの後ろに定義を追加します（大文字ASCIIの名前7文字以内、都市、緯度経度、`true`、`800`、`RD_DIAL_MAX(表)`、表、`RD_COUNT(表)`、タイムゾーン）。最初の5つ（JAPAN、USA、UK、FRANCE、WORLD）の名前と位置は変更しないでください。末尾の `LOCATION_COUNT == 7` も更新します。
 5. **ビルド**：周波数、局名長、Location数の不整合はビルドエラーになります。バイナリが1,376,256 Bを超えないようにしてください。
-6. **USB中継の許可ホストを更新**：`tools/usb-relay/allowed_hosts.txt` を置く場合、1行ごとに `host:port`、必要なら `redirect *.example.com:80` と記述します。このファイルが存在すると内蔵の許可一覧は使われないため、既存局のホストも含めてください。確認コマンドは `perl tools/usb-relay/RadioDaysRelay_U9.command --check-url <URL>` と `--check-redirect <URL>`。IPアドレス形式のURLと300文字超のURLは拒否されます。
+6. **USB中継の許可ホストを更新**：`tools/usb-relay/allowed_hosts.txt` を置く場合、1行ごとに `host:port`、必要なら `redirect *.example.com:80` と記述します。このファイルが存在すると内蔵の許可一覧は使われないため、既存局のホストも含めてください。Mac版・Windows版とも、自分と同じフォルダのこのファイルを読みます。確認コマンドは `perl tools/usb-relay/RadioDaysRelay_U9.command --check-url <URL>` と `--check-redirect <URL>`（Windowsでは `RadioDaysRelay_U9_Windows.cmd --check-url <URL>`）。IPアドレス形式のURLと300文字超のURLは拒否されます。
 7. **改造バイナリを配布する場合**：下記のGPLライセンス条件を確認してください。
 
 ## 3Dプリント部品（任意）
@@ -227,6 +243,7 @@ RADIO DAYSの標準構成は作者の選定です。好きな局や地域へ変�
 
 ## 開発資料
 
+- [ウェブデモ](https://kariagepompadour.github.io/RADIODAYS/radiodays-web.html) — Cardputerの画面をブラウザで試せるインタラクティブなデモ（実機不要）
 - [コンセプト](docs/concept.md) — 作品の背景と設計思想
 - [設計書](docs/design.md)・[開発計画](docs/development-plan.md)
 - [U10の実装・確認記録](docs/usb-u10.md)・[U9の選局とUSB中継](docs/usb-u9.md)
@@ -287,7 +304,8 @@ RADIO DAYSの標準構成は作者の選定です。好きな局や地域へ変�
 | [docs/stage-2-0-size.md](docs/stage-2-0-size.md) | Stage 2-0 容量の試作の結果 |
 | [docs/CHANGELOG.md](docs/CHANGELOG.md) | 変更履歴 |
 | `tools/make_globe_land.py` | 地球儀の地図を作るスクリプト |
-| `tools/usb-relay/` | USB中継スクリプト（`RadioDaysRelay_U9.command`、`allowed_hosts.txt` で許可ホストを指定） |
+| `tools/usb-relay/` | USB中継スクリプト（Mac：`RadioDaysRelay_U9.command`、Windows：`RadioDaysRelay_U9_Windows.cmd`／`.ps1`、`allowed_hosts.txt` で許可ホストを指定） |
+| [docs/usb-relay-windows.md](docs/usb-relay-windows.md)、`tools/usb-relay-windows-test/` | Windows用のUSB中継（Mac版との違い、試験、Windows 11での確認） |
 | `firmware/RadioDays_U10/`、`tools/u10-test/`、`tools/u10-preview/`、`tools/freq-calc/` | U10（`run_u10_test.sh`：文字盤・残像・電波塔の試験。`make_u10_preview.sh`：U10のコードで描いた画面の見本。`make_face_tower_preview_u10.py`：文字盤・電波塔の設計プレビュー。`freq_calc.py`：`freq` の計算）。**`tools/u10-test/` と `tools/u10-preview/` は公開していない旧版（`firmware/RadioDays_U9/`、`tools/u9-test/`、`tools/dial-preview/`）を使うため、作者の開発環境でのみ動きます** |
 
 </details>

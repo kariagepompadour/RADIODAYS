@@ -1,5 +1,12 @@
 # 変更履歴
 
+## Windows用のUSB中継（2026-10-22、作者がWindows 11で動作を確認）
+
+- `tools/usb-relay/RadioDaysRelay_U9_Windows.ps1` と、ダブルクリック用の `RadioDaysRelay_U9_Windows.cmd` を追加。Windows 10・11に標準のWindows PowerShell 5.1で動く（インストール不要）。RADIO DAYS U9・U10用で、通信方式、内蔵の許可ホスト、転送の規則、`allowed_hosts.txt`、`--check-url`・`--check-redirect` はmacOS版の `RadioDaysRelay_U9.command` と同じ。局の受信は.NETの `TcpClient`（チャンク形式も戻す）、CardputerのCOMポートはEspressifのUSBベンダーID（`VID_303A`）で探す（`--port COMn` でも指定可）、動作中はPCのスリープを止める
+- 試験（Mac、PowerShell 7.6.7）：URLの判定がmacOS版と122件×2方式で完全に一致、中継のシミュレーション57項目すべて合格、チャンク形式200回、U10の42局を実際に受信してMP3を確認。詳細は `usb-relay-windows.md`
+- 作者がWindows 11とCardputer ADV（U10）で確認：`.cmd` のダブルクリックで起動、COMポートの自動検出、起動時にリセットされない、複数局の切り替え、時計、ケーブルの抜き差し後の再接続。スリープの抑止、`--check-url`、長時間の安定性は未確認
+- README（英語・日本語）にWindows版の中継の使い方を追加（Linuxは引き続き未対応）。macOS版の中継とファームウェアは変更していない
+
 ## 公開準備（2026-10-22、ファームウェアは変更なし）
 
 - README（英語）と README_JP.md（日本語）を同じ構成にそろえた：導入方法を2つに分けて記載（A：M5Burnerと `RadioDays_U10.ino.merged.bin`。Launcherと他のアプリは消える。B：Launcher 2.9.1とapp-onlyの `.bin`。PManの空き、「Need …」はCancel、merged.binは使わない）、Wi-FiはCardputerだけで聴けること、USB中継スクリプトの入手・準備・起動・停止、操作表、時計の時刻の取得元、ビルド環境とライブラリの版、実機での確認状況の表、SOUND TERRARIUMの出典
