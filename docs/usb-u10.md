@@ -2,6 +2,7 @@
 
 - 作成日：2026-10-22
 - 状態：**実装、ビルド、Macでのホスト試験まで。実機（Cardputer ADV）ではまだ試していない**
+- 追記（2026-10-22、公開準備）：**USB中継での動作と画面デザインを、作者が実機で確認**。**M5BurnerからUSBで `RadioDays_U10.ino.merged.bin` を書き込み、起動と動作を作者が確認**。Wi-Fiでの再生は確認の記録がなく、長時間の安定性は未確認（第8節）
 - 設計：[dial-face-tower-proposal.md](dial-face-tower-proposal.md)（作者がB案を採用。局の印は濃いオレンジ、ミュート中はPLAYINGと同じ、BUFFERING・CONNECTINGは両方を弱く）
 - もとにした版：U9（変更なし）。中継は U9 の `RadioDaysRelay_U9.command` をそのまま使う
 
@@ -69,6 +70,8 @@
 
 ## 5. 書き込み方法（U9までと同じ）
 
+以下はLauncherでapp-onlyの `.bin` を導入する方法。Launcherを使わずにフラッシュ全体を書き込む方法（M5Burnerと `RadioDays_U10.ino.merged.bin`）は第8節とREADMEを参照。
+
 1. Launcherで、`firmware/RadioDays_U10/RadioDays_U10.ino.bin`（app-onlyの `.bin`）を導入する：SDカードにコピーしてLauncherから選ぶか、LauncherのWi-Fiアップロード（WebUI）で送る（[stage-2-1.md](stage-2-1.md) と同じ手順）
 2. `RadioDays_U10.ino.merged.bin`、Arduino IDEの「書き込み」、esptoolは使わない。**本体への直接の書き込み、パーティションの変更、NVSの消去はしない**
 3. 起動するとSTART画面の右上に `U10`
@@ -100,3 +103,43 @@
 | `tools/u10-test/run_u10_test.sh`、`u10_test.cpp` | U10のホスト試験 |
 | `tools/u10-preview/make_u10_preview.sh`、`u10_dump.cpp`、`compose_u10_preview.py` | U10のコードで描いた画面の見本 |
 | `docs/images/u10-*.png` | 画面の見本 |
+
+## 8. 実機での確認と配布用の全体イメージ（2026-10-22追記、公開準備）
+
+### 8.1 実機での確認状況
+
+| 項目 | 状況 |
+| --- | --- |
+| USB中継での再生、画面デザイン（文字盤、縁取り、電波塔） | 作者が実機で確認 |
+| M5BurnerからUSBで `RadioDays_U10.ino.merged.bin` を書き込み、起動と動作 | 作者が実機で確認（M5Burnerへの登録は作者が実施。2026-10-22にM5Burnerで公開済み。作者がM5BurnerのUser Custom画面で「Published At: 2026-10-22」を確認） |
+| Launcher 2.9.1でapp-onlyの `.bin` を導入 | Stage 2-1までと同じ手順。U10としての記録はない |
+| Wi-Fiでの再生 | 確認の記録なし（実機写真の画面にWi-Fiの電波強度が出ているが、記録がないため未確認として扱う） |
+| 長時間の安定性 | 未確認 |
+
+スケッチ冒頭のコメント（「Not yet run on hardware」、古い操作一覧）は、U10を保存版として変えないため、そのままにしている。現在の状況と操作はREADMEに書く。
+
+### 8.2 `RadioDays_U10.ino.merged.bin`
+
+| 項目 | 内容 |
+| --- | --- |
+| 用途 | M5Burnerなどでフラッシュ全体（アドレス0x0から）に書き込む。**Launcherと、Launcherで導入したアプリは消える** |
+| 内容 | ブートローダー、パーティション表、`boot_app0`、U10のアプリ（Arduino IDEの「コンパイルしたバイナリを出力」で作成） |
+| ビルド設定 | ボード M5Cardputer（`m5stack:esp32` 3.3.9）、USB Mode：Hardware CDC and JTAG、USB CDC On Boot：Enabled、**Flash Size：4MB**、**Partition Scheme：Huge APP (3MB No OTA/1MB SPIFFS)** |
+| サイズ | 4,194,304 B |
+| SHA-256 | `940735c5f2cf2b6963f14983f1923d0bde63ccc8a297e275bf67fc6309a92303` |
+
+- app-onlyの `RadioDays_U10.ino.bin`（Flash Size 8MB、8M with spiffs）とはフラッシュの設定が違うため、merged.binの中のアプリはapp-onlyの `.bin` と1バイト単位では一致しない。ソースはどちらも同じ（第7節のファイル）
+- `SHA256SUMS.txt` は第2節で作ったもので、merged.binを含まない。保存版のため書き換えず、merged.binのSHA-256はこの節、README、`THIRD_PARTY_NOTICES.md` に記録する
+
+### 8.3 ビルドに使ったライブラリの版
+
+ESP8266Audio 2.4.1、M5Cardputer 1.1.1、M5Unified 0.2.25、M5GFX 0.2.32。
+
+- 作者のMacでは、2026-10-22 15:22（両方のバイナリを作った後）に M5Unified が0.2.27、M5GFX が0.2.34 に更新されている
+- 確認（Mac、2026-10-22）：M5Unified 0.2.25 と M5GFX 0.2.32 を別の場所に置いてapp-onlyの設定でビルドし直すと、配布している `RadioDays_U10.ino.bin` との差は、バイナリに入るライブラリの場所（3か所）の文字数の差と、その後の位置合わせの8 Bだけだった。新しい版のライブラリでは、差がこれより大きい。このため、配布しているバイナリは上の版で作ったと判断した
+- 作り直したバイナリは、ビルドしたマシンのファイルの場所が入るため、1バイト単位で一致するとは限らない
+
+### 8.4 公開リポジトリでの試験用ツール
+
+`tools/u10-test/run_u10_test.sh` は `firmware/RadioDays_U9/` と `tools/u9-test/` を、`tools/u10-preview/` のスクリプトは `tools/dial-preview/` を使う。これらは公開していない（`.gitignore` で除外）ため、cloneした環境では動かない。作者の開発環境でのみ使う。U10の `SHA256SUMS.txt` の対象なので、ツール自体は変えていない。
+

@@ -3,7 +3,7 @@
 - 作成日：2026-10-21
 - 状態：**2026-10-21に実機で動作確認済み**（作者：8段LEDレベルメーターが放送の音に合わせて正常に動く）。このフォルダのファイルは、以後変更しない
 - もとにした版：Stage 2-3（`firmware/RadioDays_2_3/` は変更せずに保存。SHA-256一致を確認）
-- ソース：[../firmware/RadioDays_2_4/](../firmware/RadioDays_2_4/)
+- ソース：`firmware/RadioDays_2_4/`（公開リポジトリには含めていない）
 - 導入するファイル：`firmware/RadioDays_2_4/RadioDays_2_4.ino.bin`（app-only）
 
 ## 1. 変更内容

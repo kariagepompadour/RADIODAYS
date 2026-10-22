@@ -3,7 +3,7 @@
 - 作成日：2026-10-21
 - 状態：**ビルドと静的テストまで完了。実機ではまだ動かしていない**
 - もとにした版：Stage 3-2（`firmware/RadioDays_3_2/` は変更せずに保存。SHA-256一致を確認）
-- ソース：[../firmware/RadioDays_3_3/](../firmware/RadioDays_3_3/)
+- ソース：`firmware/RadioDays_3_3/`（公開リポジトリには含めていない）
 - 導入するファイル：**`firmware/RadioDays_3_3/RadioDays_3_3.ino.bin`**（app-only）
 
 ![空の窓とUFO（Macで同じ描画手順で描いたもの）](images/sky-ufo-preview-3-3.png)

@@ -19,29 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-## Compiled Binary License Notice
-
-The compiled firmware binaries (`.ino.bin` files in `firmware/`) are subject to
-the GNU General Public License, version 3 or later (GPL-3.0-or-later), because
-they incorporate ESP8266Audio 2.4.1 (Copyright (c) 2016-2024 Earle F. Philhower, III),
-which is licensed under GPL-3.0-or-later. ESP8266Audio in turn embeds libmad
-(Copyright (c) 2000-2004 Underbit Technologies, Inc.), licensed GPL-2.0-or-later.
-
-The full text of the GNU General Public License version 3 is in
-`LICENSES/GPL-3.0-or-later.txt`.
-
-ESP8266Audio source: https://github.com/earlephilhower/ESP8266Audio (version 2.4.1)
-
-Corresponding Source for the compiled binaries includes:
-- The author's source files in this repository (`.ino`, `.h`)
-- ESP8266Audio 2.4.1 source code, included in `third-party/ESP8266Audio-2.4.1/`
-  (libmad included; original license and copyright notices preserved)
-- Build instructions in README.md (section: ビルド in 対応環境（技術的な事項）)
-
-The ESP8266Audio source bundled in `third-party/ESP8266Audio-2.4.1/` is provided
-for GPL Corresponding Source compliance. It is a verbatim copy of ESP8266Audio 2.4.1
-as installed from https://github.com/earlephilhower/ESP8266Audio. Building the
-firmware uses the system-installed library, not the bundled copy.

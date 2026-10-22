@@ -2,6 +2,7 @@
 
 - 作成日：2026-10-22
 - 状態：**調査と提案だけ**。コード、`stations.h`、USB中継、READMEは変えていない
+- 注記（2026-10-22、公開準備）：**U8（19 Location、`LOCATION_COUNT == 19`、中継U4）の時点の資料**。U10（7 Location、中継 `RadioDaysRelay_U9.command`）での手順は README の「放送局を追加・変更する」を参照
 - 目的：標準の収録国を減らしても（[location-selection-review.md](location-selection-review.md)）、利用者が自分の国や好きな局を加えられるように、今の作りで必要な作業を整理する
 - 調べた版：U8（`firmware/RadioDays_U8/stations.h`、`RadioDays_U8.ino`、`radiodays_link.h`）、USB中継 `tools/usb-relay/RadioDaysRelay_U4.command`
 

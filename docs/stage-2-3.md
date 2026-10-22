@@ -3,7 +3,7 @@
 - 作成日：2026-10-20
 - 状態：**ビルドと静的テストまで完了。実機ではまだ動かしていない**（実機テストは2026-10-21の予定）
 - もとにした版：Stage 2-2（2026-10-20に実機で動作確認済み。`firmware/RadioDays_2_2/` は変更せずに保存）
-- ソース：[../firmware/RadioDays_2_3/](../firmware/RadioDays_2_3/)
+- ソース：`firmware/RadioDays_2_3/`（公開リポジトリには含めていない）
 - 導入するファイル：`firmware/RadioDays_2_3/RadioDays_2_3.ino.bin`（app-only）
 
 ## 1. 変更内容

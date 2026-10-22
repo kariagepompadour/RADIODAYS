@@ -3,7 +3,7 @@
 - 作成日：2026-10-20
 - 状態：**2026-10-20に実機で動作確認済み**（作者。Wi-Fi接続と再生、回して選局、押しながら回して音量）。このフォルダのファイルは、以後変更しない
 - もとにした版：Stage 2-1（2026-10-20に実機で動作確認済み。`firmware/RadioDays_2_1/` は変更せずに保存）
-- ソース：[../firmware/RadioDays_2_2/](../firmware/RadioDays_2_2/)
+- ソース：`firmware/RadioDays_2_2/`（公開リポジトリには含めていない）
 - 導入するファイル：`firmware/RadioDays_2_2/RadioDays_2_2.ino.bin`（app-only）
 
 ## 1. 変わったところ

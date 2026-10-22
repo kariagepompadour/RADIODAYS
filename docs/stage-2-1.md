@@ -2,7 +2,7 @@
 
 - 作成日：2026-10-20
 - 状態：**2026-10-20に実機で動作確認済み**（作者。Launcherからの導入、Wi-Fi接続、U135の操作、内蔵スピーカーでの再生）。このフォルダのファイルは、以後変更しない
-- ソース：[../firmware/RadioDays_2_1/](../firmware/RadioDays_2_1/)
+- ソース：`firmware/RadioDays_2_1/`（公開リポジトリには含めていない）
 - 導入するファイル：`firmware/RadioDays_2_1/RadioDays_2_1.ino.bin`（app-only）
 
 ## 1. できること

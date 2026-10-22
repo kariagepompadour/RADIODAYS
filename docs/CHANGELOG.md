@@ -1,5 +1,14 @@
 # 変更履歴
 
+## 公開準備（2026-10-22、ファームウェアは変更なし）
+
+- README（英語）と README_JP.md（日本語）を同じ構成にそろえた：導入方法を2つに分けて記載（A：M5Burnerと `RadioDays_U10.ino.merged.bin`。Launcherと他のアプリは消える。B：Launcher 2.9.1とapp-onlyの `.bin`。PManの空き、「Need …」はCancel、merged.binは使わない）、Wi-FiはCardputerだけで聴けること、USB中継スクリプトの入手・準備・起動・停止、操作表、時計の時刻の取得元、ビルド環境とライブラリの版、実機での確認状況の表、SOUND TERRARIUMの出典
+- `RadioDays_U10.ino.merged.bin`（M5Burner用の全体イメージ、Flash Size 4MB・Huge APP）を追加。作者がM5BurnerからUSBで書き込み、起動と動作を確認。2026-10-22にM5Burnerで公開。SHA-256は `usb-u10.md` 第8節、README、`THIRD_PARTY_NOTICES.md` に記録（保存版の `SHA256SUMS.txt` は変えていない）
+- `LICENSE` をMIT Licenseの本文だけに戻し、バイナリのライセンス（GPL-3.0-or-later）、対応するソース、第三者のライブラリ（版とライセンス）の告知を `THIRD_PARTY_NOTICES.md` に移した
+- `usb-u10.md` に実機での確認状況、merged.bin、ライブラリの版（M5Unified 0.2.25、M5GFX 0.2.32）、公開リポジトリでは動かない試験用ツールを追記。`station-customization-review.md` にU8時点の資料である注記。`stage-2-0-size.md`〜`stage-2-5.md`、`stage-3-3.md` の公開していないフォルダへのリンクを、リンクのないパスの表記に変更
+- `.gitignore` にすべての `build/` フォルダを追加
+- U10のスケッチ、`stations.h`、USB中継、試験用ツール、`SHA256SUMS.txt` は変更していない
+
 ## U10（2026-10-22、USB中継での動作と画面デザインを実機で確認済み。長時間安定性は未確認）
 
 - チューニングメーターをアイボリー (240,234,214) の文字盤に黒い目盛り、温かい灰の基線、濃いオレンジ (200,80,0) の局の印にし、2ピクセルのくぼんだ灰色の縁取り（上と左が暗く、下と右が明るい）を付けた（`dial-face-tower-proposal.md` のB案）。4段の目盛り、間隔、動き、指針はU9のまま。U9で黒で消していた3か所は文字盤の色で消す
