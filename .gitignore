@@ -1,0 +1,54 @@
+build/
+.DS_Store
+# Wi-Fi settings for test builds (Stage 2-1) are never committed
+secrets.h
+# NVS dumps contain other apps' Wi-Fi passwords: keep them outside the repository
+nvs_*.bin
+# Old firmware versions: development records retained locally; only RadioDays_U10 is published
+firmware/RadioDays_2_0/
+firmware/RadioDays_2_1/
+firmware/RadioDays_2_2/
+firmware/RadioDays_2_3/
+firmware/RadioDays_2_4/
+firmware/RadioDays_2_5/
+firmware/RadioDays_3_1/
+firmware/RadioDays_3_2/
+firmware/RadioDays_3_3/
+firmware/RadioDays_U1/
+firmware/RadioDays_U2a/
+firmware/RadioDays_U2a2/
+firmware/RadioDays_U2a3/
+firmware/RadioDays_U2a4/
+firmware/RadioDays_U3/
+firmware/RadioDays_U4/
+firmware/RadioDays_U5/
+firmware/RadioDays_U6/
+firmware/RadioDays_U7/
+firmware/RadioDays_U8/
+firmware/RadioDays_U9/
+# Old version-specific tools: development records retained locally; only U10-related tools are published
+tools/dial-preview/
+tools/dial-preview-u6/
+tools/relay-rule-test/
+tools/sat-test/
+tools/start-test/
+tools/time-test/
+tools/u4-test/
+tools/u5-test/
+tools/u6-test/
+tools/u7-test/
+tools/u8-test/
+tools/u9-test/
+tools/ufo-test/
+tools/u9-preview/
+# Old relay scripts and simulators in usb-relay/: only RadioDaysRelay_U9.command is published
+tools/usb-relay/RadioDaysPortCheck_U1.command
+tools/usb-relay/RadioDaysRelay_U1.command
+tools/usb-relay/RadioDaysRelay_U2.command
+tools/usb-relay/RadioDaysRelay_U2a2.command
+tools/usb-relay/RadioDaysRelay_U3.command
+tools/usb-relay/RadioDaysRelay_U4.command
+tools/usb-relay/sim/
+tools/usb-relay/sim2/
+tools/usb-relay/sim3/
+tools/usb-relay/sim4/
