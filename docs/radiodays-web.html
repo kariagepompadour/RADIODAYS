@@ -428,7 +428,7 @@ function renderSky(h){
 
 // Dial: outer bevel x30–173 y18–93; face x32–171 y20–91; needle x=101
 function renderDial(){
-  const loc=LOCS[app.locIdx], ring=loc.ring, cs=app.freq-800, nx=101;
+  const loc=LOCS[app.locIdx], ring=loc.ring, cs=((app.freq-800)%ring+ring)%ring, nx=101; // place on the ring
   // Bevel
   fr(30,18,144,1,C.bOD); fr(30,18,1,76,C.bOD);
   fr(30,93,144,1,C.bOL); fr(173,18,1,76,C.bOL);
@@ -652,7 +652,10 @@ function update(now){
     const d=app.tgtFreq-app.freq;
     const move=Math.sign(d)*Math.min(Math.abs(d), 20*dt/1000);
     app.freq+=move;
-    if(Math.abs(app.freq-app.tgtFreq)<0.3) app.freq=app.tgtFreq;
+    if(Math.abs(app.freq-app.tgtFreq)<0.3){
+      const ring=LOCS[app.locIdx].ring; // back onto the ring (the glide may have run past its end)
+      app.freq=app.tgtFreq=800+((app.tgtFreq-800)%ring+ring)%ring;
+    }
     // Static noise during tuning
     const ratio=Math.abs(app.tgtFreq-app.freq)/Math.max(1,Math.abs(app.tgtFreq-app.freq)+2);
     setNoise(0.35*ratio);
@@ -690,11 +693,11 @@ function keyRadio(e){
   switch(e.key){
     case 'ArrowRight':case 'ArrowUp':
       if(e.shiftKey) setVol(app.vol+5);
-      else if(app.stIdx<loc.stations.length-1) tune(app.stIdx+1);
+      else stepStation(1);
       break;
     case 'ArrowLeft':case 'ArrowDown':
       if(e.shiftKey) setVol(app.vol-5);
-      else if(app.stIdx>0) tune(app.stIdx-1);
+      else stepStation(-1);
       break;
     case ' ':case 'Enter': togglePlay(); break;
     case 'l':case 'L': app.locCursor=app.locIdx; app.screen='location'; break;
@@ -714,10 +717,21 @@ function setVol(v){
   app.vol=Math.max(0,Math.min(100,Math.round(v/5)*5));
   aud.volume=app.vol/100;
 }
-function tune(si){
+// Next / previous station round the ring (after the last comes the first), as the
+// Cardputer. The dial keeps turning the same way: past the ring's end it goes on to the
+// station's next place on the ring, not back across the whole scale.
+function stepStation(dir){
+  const n=LOCS[app.locIdx].stations.length;
+  if(n<2) return;
+  tune((app.stIdx+dir+n)%n, dir);
+}
+function tune(si, dir){
   if(app.stIdx===si) return;
   const resume=wantsPlayback;
-  app.stIdx=si; app.tgtFreq=LOCS[app.locIdx].stations[si].freq;
+  const loc=LOCS[app.locIdx], ring=loc.ring;
+  let step=((loc.stations[si].freq-app.tgtFreq)%ring+ring)%ring; // forward distance from the current target
+  if(dir<0 && step>0) step-=ring;                                 // or the same distance backward
+  app.stIdx=si; app.tgtFreq+=step;
   const url=LOCS[app.locIdx].stations[si].url;
   if(resume) audioPlay(url);
   else prepareStation(url);
@@ -754,9 +768,8 @@ cv.addEventListener('wheel',e=>{
   const r=cv.getBoundingClientRect();
   const ux=(e.offsetX||e.clientX-r.left)*240/r.width, uy=(e.offsetY||e.clientY-r.top)*135/r.height;
   if(ux<30||ux>173||uy<18||uy>93) return;
-  const loc=LOCS[app.locIdx];
-  if(e.deltaY>0&&app.stIdx<loc.stations.length-1) tune(app.stIdx+1);
-  if(e.deltaY<0&&app.stIdx>0) tune(app.stIdx-1);
+  if(e.deltaY>0) stepStation(1);
+  if(e.deltaY<0) stepStation(-1);
   e.preventDefault();
 },{passive:false});
 
@@ -787,8 +800,7 @@ function touchStep(dir){
   } else if(app.controlMode==='volume'){
     setVol(app.vol+dir*5);
   } else {
-    const next=app.stIdx+dir;
-    if(next>=0 && next<LOCS[app.locIdx].stations.length) tune(next);
+    stepStation(dir);
   }
   updateControls();
 }
