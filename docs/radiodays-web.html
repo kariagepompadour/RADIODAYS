@@ -24,7 +24,17 @@ canvas {
   max-width:100%;
 }
 .keys {
-  margin-top:12px; font-size:.68rem; color:#444; text-align:center; line-height:2;
+  width:min(720px,100%); margin-top:20px; color:#999; text-align:center;
+  font-size:.78rem; line-height:1.6;
+}
+.keys h2 { color:#ffa000; font-size:.9rem; margin-bottom:10px; }
+.keys table { width:100%; border-collapse:collapse; text-align:left; }
+.keys th,.keys td { padding:9px 8px; border-bottom:1px solid #333; vertical-align:top; }
+.keys th { color:#ffa000; font-weight:bold; }
+.keys .key-help { margin-top:12px; color:#aaa; line-height:1.8; }
+@media(max-width:480px) {
+  .keys { font-size:.7rem; }
+  .keys th,.keys td { padding:8px 4px; }
 }
 kbd {
   background:#1a1a1a; border:1px solid #3a3a3a; border-radius:3px;
@@ -34,22 +44,66 @@ kbd {
   margin-top:10px; font-size:.6rem; color:#333;
   max-width:480px; text-align:center; line-height:1.8;
 }
+
+/* Controls are visible on desktop and mobile for testing and use. */
+.touch-controls { display:block; width:min(720px,100%); margin-top:16px; text-align:center; }
+.mode-indicator { color:#ffa000; font-size:0.85rem; letter-spacing:.08em; margin-bottom:12px; }
+.control-row { display:flex; justify-content:center; gap:12px; margin:0 0 12px; }
+.touch-controls button {
+  appearance:none; -webkit-appearance:none; border:1px solid #786027;
+  background:#191919; color:#ffa000; border-radius:10px;
+  min-width:68px; min-height:54px; padding:10px 14px;
+  font:700 1rem 'Courier New',monospace;
+  touch-action:manipulation; cursor:pointer;
+}
+.touch-controls button:active { background:#43300c; }
+.touch-controls button:focus-visible { outline:2px solid #ffa000; outline-offset:2px; }
+.touch-controls button:disabled { opacity:.35; cursor:default; }
+.touch-controls .wide { flex:1; max-width:220px; font-size:.85rem; }
+.touch-controls .control-row { max-width:520px; margin-left:auto; margin-right:auto; }
+@media (pointer:coarse), (max-width:740px) {
+  body { padding:16px 12px 24px; }
+  canvas { height:auto; aspect-ratio:240 / 135; }
+}
 </style>
 </head>
 <body>
 <h1>RADIO DAYS</h1>
-<p class="sub">M5Stack Cardputer ADV + Unit Encoder U135</p>
+<p class="sub">M5Stack Cardputer ADV（Unit Encoder U135はなくても使えます / U135 optional）</p>
 <canvas id="screen" width="240" height="135" tabindex="0"></canvas>
-<div class="keys">
-  <kbd>←</kbd><kbd>→</kbd> 選局 &ensp;
-  <kbd>Space</kbd> 再生 / 停止 &ensp;
-  <kbd>Shift</kbd>+<kbd>←</kbd><kbd>→</kbd> 音量 &ensp;
-  <kbd>L</kbd> Location を変える<br>
-  ダイヤルをスクロール・クリックでも操作できます
-</div>
+<section class="touch-controls" aria-label="スマートフォン用操作ボタン">
+  <div id="mode-indicator" class="mode-indicator" role="status" aria-live="polite">TUNING</div>
+  <div class="control-row">
+    <button type="button" id="ctrl-left" aria-label="前の局">◀</button>
+    <button type="button" id="ctrl-mode" aria-label="音量モードに切り替え">TUNING / VOLUME</button>
+    <button type="button" id="ctrl-right" aria-label="次の局">▶</button>
+  </div>
+  <div class="control-row">
+    <button type="button" class="wide" id="ctrl-play">▶ PLAY / STOP</button>
+    <button type="button" class="wide" id="ctrl-location">LOCATION</button>
+  </div>
+</section>
+<section class="keys" aria-label="操作方法">
+  <h2>操作方法 / CONTROLS</h2>
+  <table>
+    <thead><tr><th>操作</th><th>Cardputer ADV実機</th><th>Web版</th></tr></thead>
+    <tbody>
+      <tr><td>選局</td><td>U135を回す／◀ ▶キー（<kbd>,</kbd> <kbd>/</kbd>）</td><td>◀ ▶（選局モード）</td></tr>
+      <tr><td>音量調整</td><td>U135を押しながら回す／↑ ↓キー（<kbd>;</kbd> <kbd>.</kbd>）</td><td>◀ ▶（音量モード）</td></tr>
+      <tr><td>選局・音量の切替</td><td>不要</td><td>TUNING / VOLUME</td></tr>
+      <tr><td>AUTO／MANUAL切替</td><td>Aキー</td><td>―</td></tr>
+      <tr><td>ミュート ON／OFF</td><td>U135を短押し／Mキー</td><td>―</td></tr>
+      <tr><td>地域選択</td><td>Lキー</td><td>LOCATION</td></tr>
+    </tbody>
+  </table>
+  <p class="key-help">Cardputer ADV実機は、U135がなくても本体のキーボードだけで選局・音量調整ができます（◀ ▶ ↑ ↓は本体の <kbd>,</kbd> <kbd>/</kbd> <kbd>;</kbd> <kbd>.</kbd> キーに印刷された矢印です）。<br>
+  Web版の TUNING / VOLUME ボタンは、◀ ▶の操作対象を「選局／音量調整」で切り替えます（上の表示が TUNING または VOLUME に変わります）。実機のAキー（AUTO／MANUALの切替）とは別の機能です。<br>
+  Web版のPLAY／STOPは再生・停止の切替です。PCでは画面をクリックしてから、<kbd>←</kbd><kbd>→</kbd> 選局、<kbd>Shift</kbd>+<kbd>←</kbd><kbd>→</kbd> 音量、<kbd>Space</kbd> 再生／停止、<kbd>L</kbd> 地域選択でも操作できます。</p>
+  <p class="key-help">The Cardputer ADV works with its own keyboard alone; the U135 encoder is optional. In this web demo, the TUNING / VOLUME button switches the ◀ ▶ buttons between tuning and volume (it is not the A key's AUTO/MANUAL). On a PC, click the screen, then use ←→ to tune, Shift+←→ for volume, Space to play/stop and L for Location.</p>
+</section>
 <div class="note">
-  ※ ストリームは HTTP です。Finder から HTML ファイルをダブルクリックして Safari で開くと音が出ます。<br>
-  Chrome の場合は Terminal で <code>python3 -m http.server 8080</code> → <code>localhost:8080/radiodays-web.html</code>
+  ※ Web版では、ブラウザのセキュリティ上の制約により、一部の放送局を再生できない場合があります。<br>
+  Because of browser security restrictions, some stations may not play in the web version.
 </div>
 
 <script>
@@ -60,14 +114,14 @@ kbd {
 
 // ---- Station data (stations.h) ----
 const LOCS = [
-  { name:"JAPAN",   city:"TOKYO",      lat:35.68, lon:139.69, hasM:true,  tz: 9, stations:[
+  { name:"JAPAN",   city:"TOKYO",      lat:35.68, lon:139.69, hasM:true,  tz: 9, zone:'Asia/Tokyo', stations:[
     {name:"Shonan Beach FM",    url:"http://shonanbeachfm.out.airtime.pro:8000/shonanbeachfm_a"},
     {name:"FM Setagaya",        url:"http://fmsetagaya834.out.airtime.pro:8000/fmsetagaya834_a"},
     {name:"OTTAVA",             url:"http://ottava2.out.airtime.pro:8000/ottava2_a"},
     {name:"FM Kahoku",          url:"http://radio.kahoku.net:8000/;"},
     {name:"Otsuchi Seashore",   url:"http://mp3s.nc.u-tokyo.ac.jp/OTSUCHI_CyberForest.mp3"},
   ]},
-  { name:"USA",     city:"NEW YORK",   lat:40.71, lon:-74.01, hasM:true,  tz:-5, stations:[
+  { name:"USA",     city:"NEW YORK",   lat:40.71, lon:-74.01, hasM:true,  tz:-5, zone:'America/New_York', stations:[
     {name:"WNYC",               url:"http://fm939.wnyc.org/wnycfm"},
     {name:"WFUV",               url:"http://wfuv-onair.streamguys.org/onair-hi"},
     {name:"WQXR",               url:"http://stream.wqxr.org/wqxr"},
@@ -75,7 +129,7 @@ const LOCS = [
     {name:"WFMU",               url:"http://stream0.wfmu.org/freeform-128k"},
     {name:"KEXP",               url:"http://kexp-mp3-128.streamguys1.com/kexp128.mp3"},
   ]},
-  { name:"UK",      city:"LONDON",     lat:51.51, lon:-0.13,  hasM:true,  tz: 0, stations:[
+  { name:"UK",      city:"LONDON",     lat:51.51, lon:-0.13,  hasM:true,  tz: 0, zone:'Europe/London', stations:[
     {name:"BBC World Service",  url:"http://stream.live.vc.bbcmedia.co.uk/bbc_world_service"},
     {name:"Heart London",       url:"http://media-ice.musicradio.com/HeartLondonMP3"},
     {name:"Radio X London",     url:"http://media-ice.musicradio.com/RadioXLondonMP3"},
@@ -84,7 +138,7 @@ const LOCS = [
     {name:"Capital London",     url:"http://media-ice.musicradio.com/CapitalMP3"},
     {name:"Radio Caroline",     url:"http://sc6.radiocaroline.net:8040/stream"},
   ]},
-  { name:"FRANCE",  city:"PARIS",      lat:48.86, lon:2.35,   hasM:true,  tz: 1, stations:[
+  { name:"FRANCE",  city:"PARIS",      lat:48.86, lon:2.35,   hasM:true,  tz: 1, zone:'Europe/Paris', stations:[
     {name:"France Inter",       url:"http://icecast.radiofrance.fr/franceinter-midfi.mp3"},
     {name:"FIP",                url:"http://icecast.radiofrance.fr/fip-midfi.mp3"},
     {name:"RTL",                url:"http://icecast.rtl.fr/rtl-1-44-128"},
@@ -93,7 +147,7 @@ const LOCS = [
     {name:"Skyrock",            url:"http://icecast.skyrock.net/s/natio_mp3_128k"},
     {name:"TSF Jazz",           url:"http://tsfjazz.ice.infomaniak.ch/tsfjazz-high.mp3"},
   ]},
-  { name:"WORLD",   city:"EVERYWHERE", lat:0,     lon:0,      hasM:false, tz: 9, stations:[
+  { name:"WORLD",   city:"EVERYWHERE", lat:0,     lon:0,      hasM:false, tz: 9, zone:'Asia/Tokyo', stations:[
     {name:"Radio Paradise",     url:"http://stream.radioparadise.com/mp3-128"},
     {name:"Radio Swiss Jazz",   url:"http://stream.srg-ssr.ch/m/rsj/mp3_128"},
     {name:"RNZ National",       url:"http://radionz-ice.streamguys.com/national.mp3"},
@@ -101,7 +155,7 @@ const LOCS = [
     {name:"Secret Agent",       url:"http://ice1.somafm.com/secretagent-128-mp3"},
     {name:"Nightwave Plaza",    url:"http://radio.plaza.one/mp3"},
   ]},
-  { name:"GERMANY", city:"BERLIN",     lat:52.52, lon:13.40,  hasM:true,  tz: 1, stations:[
+  { name:"GERMANY", city:"BERLIN",     lat:52.52, lon:13.40,  hasM:true,  tz: 1, zone:'Europe/Berlin', stations:[
     {name:"Deutschlandfunk",    url:"http://st01.sslstream.dlf.de/dlf/01/128/mp3/stream.mp3"},
     {name:"SWR3",               url:"http://dispatcher.rndfnk.com/swr/swr3/live/mp3/128/stream.mp3"},
     {name:"DLF Kultur",         url:"http://st02.sslstream.dlf.de/dlf/02/128/mp3/stream.mp3"},
@@ -109,7 +163,7 @@ const LOCS = [
     {name:"1LIVE",              url:"http://wdr-1live-live.icecast.wdr.de/wdr/1live/live/mp3/128/stream.mp3"},
     {name:"Antenne Bayern",     url:"http://mp3channels.webradio.antenne.de/antenne"},
   ]},
-  { name:"ITALY",   city:"ROME",       lat:41.90, lon:12.50,  hasM:true,  tz: 1, stations:[
+  { name:"ITALY",   city:"ROME",       lat:41.90, lon:12.50,  hasM:true,  tz: 1, zone:'Europe/Rome', stations:[
     {name:"Radio 24",           url:"http://shoutcast2.radio24.it:8000/;"},
     {name:"Radio 105",          url:"http://icecast.unitedradio.it/Radio105.mp3"},
     {name:"Radio Radicale",     url:"http://live.radioradicale.it/live.mp3"},
@@ -139,6 +193,8 @@ const app = {
   screen: 'radio',       // radio | location
   prevT: 0,              // timestamp of previous frame
   vol: 75,               // 0–100
+  auto: true,            // the web demo always tunes station to station (AUTO)
+  controlMode: 'tuning', // touch encoder: tuning | volume
 };
 app.freq = app.tgtFreq = LOCS[app.locIdx].stations[app.stIdx].freq;
 
@@ -175,7 +231,7 @@ function tx(s,x,y,c,sz,bold){
 }
 
 // ---- HTML5 Audio ----
-const aud = new Audio(); aud.preload='none';
+const aud = new Audio(); aud.preload='auto';
 
 // Web Audio API for static noise
 let wCtx=null, noiseNode=null, noiseGain=null;
@@ -193,17 +249,44 @@ function ensureWebAudio(){
 }
 function setNoise(vol){ if(!noiseGain)return; noiseGain.gain.setTargetAtTime(vol,wCtx.currentTime,0.08); }
 
+// Preserve the Cardputer's distinction between tuning and audio output.
+// Browsers may decline to buffer a paused live stream (especially iOS Safari).
+let playbackRequest=0;
+let wantsPlayback=false;
+function prepareStation(url){
+  ++playbackRequest;
+  aud.pause();
+  aud.preload='auto';
+  if(aud.src!==url) aud.src=url;
+  aud.volume=app.vol/100;
+  aud.load(); // Request buffering, without starting audible playback.
+  app.audioSt='idle';
+  app.level=0;
+  setNoise(0);
+}
 function audioPlay(url){
-  ensureWebAudio(); if(wCtx.state==='suspended') wCtx.resume();
-  aud.pause(); aud.src=url; aud.volume=app.vol/100; app.audioSt='loading';
-  const ok=()=>{ aud.play().then(()=>app.audioSt='playing').catch(()=>app.audioSt='error'); aud.removeEventListener('canplay',ok); };
-  const er=()=>{ app.audioSt='error'; aud.removeEventListener('error',er); };
-  aud.addEventListener('canplay',ok); aud.addEventListener('error',er); aud.load();
+  wantsPlayback=true;
+  const request=++playbackRequest;
+  try {
+    ensureWebAudio();
+    if(wCtx.state==='suspended') wCtx.resume().catch(()=>{});
+    if(aud.src!==url){ aud.src=url; aud.load(); }
+    aud.volume=app.vol/100;
+    app.audioSt='loading';
+    // Call play synchronously from the button gesture for iOS Safari.
+    const attempt=aud.play();
+    if(attempt && typeof attempt.then==='function'){
+      attempt.then(()=>{ if(request===playbackRequest) app.audioSt='playing'; })
+        .catch(()=>{ if(request===playbackRequest) app.audioSt='error'; });
+    }
+  } catch(_){ if(request===playbackRequest) app.audioSt='error'; }
 }
 function audioStop(){
-  aud.pause(); aud.src=''; app.audioSt='idle'; app.level=0; setNoise(0);
+  wantsPlayback=false;
+  ++playbackRequest;
+  aud.pause(); // Keep the selected stream loaded for possible replay.
+  app.audioSt='idle'; app.level=0; setNoise(0);
 }
-
 // ---- Render ----
 function render(){
   fr(0,0,240,135,C.bg);
@@ -230,9 +313,14 @@ function renderMeter(){
 
 // Right panel: date, clock, sky  x176–237
 function renderRight(){
-  const tz=LOCS[app.locIdx].tz;
+  const L=LOCS[app.locIdx];
   const now=new Date();
-  const loc=new Date(now.getTime()+(tz*60+now.getTimezoneOffset())*60000);
+  let loc=new Date(now.getTime()+(L.tz*60+now.getTimezoneOffset())*60000); // fallback: standard time
+  try { // the city's local time with daylight saving, as the firmware's time zones
+    const p={}; new Intl.DateTimeFormat('en-US',{timeZone:L.zone,hourCycle:'h23',year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric',second:'numeric'})
+      .formatToParts(now).forEach(q=>{ p[q.type]=+q.value; });
+    loc=new Date(p.year,p.month-1,p.day,p.hour,p.minute,p.second);
+  } catch(_){}
   const pad=n=>String(n).padStart(2,'0');
   const date=`${loc.getFullYear()}.${pad(loc.getMonth()+1)}.${pad(loc.getDate())}`;
   const time=`${pad(loc.getHours())}:${pad(loc.getMinutes())}:${pad(loc.getSeconds())}`;
@@ -592,6 +680,7 @@ requestAnimationFrame(loop);
 cv.addEventListener('keydown',e=>{
   ensureWebAudio && (() => { try{ ensureWebAudio(); }catch(_){} })();
   if(app.screen==='location') keyLoc(e); else keyRadio(e);
+  updateControls();
   e.preventDefault();
 });
 cv.addEventListener('mousedown',()=>{ cv.focus(); try{ensureWebAudio();}catch(_){} });
@@ -627,18 +716,24 @@ function setVol(v){
 }
 function tune(si){
   if(app.stIdx===si) return;
+  const resume=wantsPlayback;
   app.stIdx=si; app.tgtFreq=LOCS[app.locIdx].stations[si].freq;
-  audioStop();
+  const url=LOCS[app.locIdx].stations[si].url;
+  if(resume) audioPlay(url);
+  else prepareStation(url);
 }
 function togglePlay(){
   if(app.freq!==app.tgtFreq) return;
-  if(app.audioSt==='playing'||app.audioSt==='loading') audioStop();
+  if(wantsPlayback) audioStop();
   else audioPlay(LOCS[app.locIdx].stations[app.stIdx].url);
 }
 function confirmLoc(){
   if(app.locCursor!==app.locIdx){
-    audioStop(); app.locIdx=app.locCursor; app.stIdx=0;
+    const resume=wantsPlayback;
+    app.locIdx=app.locCursor; app.stIdx=0;
     app.freq=app.tgtFreq=LOCS[app.locIdx].stations[0].freq;
+    const url=LOCS[app.locIdx].stations[0].url;
+    if(resume) audioPlay(url); else prepareStation(url);
   }
   app.screen='radio';
 }
@@ -647,14 +742,10 @@ function confirmLoc(){
 cv.addEventListener('click',e=>{
   const r=cv.getBoundingClientRect();
   const ux=(e.clientX-r.left)*240/r.width, uy=(e.clientY-r.top)*135/r.height;
-  if(app.screen==='location'){
-    const i=Math.floor((uy-15)/17);
-    if(i>=0&&i<LOCS.length){ app.locCursor=i; confirmLoc(); }
-    return;
-  }
+  if(app.screen==='location'){ confirmLoc(); updateControls(); return; }
   if(ux>=30&&ux<=173&&uy>=18&&uy<=93){ togglePlay(); return; }
   if(uy>=96&&uy<=120){ togglePlay(); return; }
-  if(uy>=126&&ux>=4&&ux<=55){ app.locCursor=app.locIdx; app.screen='location'; }
+  if(uy>=126&&ux>=4&&ux<=55){ app.locCursor=app.locIdx; app.screen='location'; updateControls(); }
 });
 
 // Scroll wheel on dial
@@ -668,6 +759,56 @@ cv.addEventListener('wheel',e=>{
   if(e.deltaY<0&&app.stIdx>0) tune(app.stIdx-1);
   e.preventDefault();
 },{passive:false});
+
+// ---- Touch-friendly encoder controls ----
+const ctrl = {
+  left: document.getElementById('ctrl-left'),
+  mode: document.getElementById('ctrl-mode'),
+  right: document.getElementById('ctrl-right'),
+  play: document.getElementById('ctrl-play'),
+  location: document.getElementById('ctrl-location'),
+  label: document.getElementById('mode-indicator')
+};
+function updateControls(){
+  const isLoc=app.screen==='location';
+  ctrl.label.textContent=isLoc ? 'LOCATION: SELECT' :
+    (app.controlMode==='tuning' ? 'TUNING' : 'VOLUME');
+  ctrl.left.setAttribute('aria-label',isLoc?'前の地域':app.controlMode==='tuning'?'前の局':'音量を下げる');
+  ctrl.right.setAttribute('aria-label',isLoc?'次の地域':app.controlMode==='tuning'?'次の局':'音量を上げる');
+  ctrl.mode.textContent=isLoc?'OK':'TUNING / VOLUME';
+  ctrl.mode.setAttribute('aria-label',isLoc?'地域を決定':app.controlMode==='tuning'?'音量モードに切り替え':'選局モードに切り替え');
+  ctrl.play.disabled=isLoc;
+  ctrl.location.textContent=isLoc?'BACK':'LOCATION';
+  ctrl.location.setAttribute('aria-label',isLoc?'地域選択をキャンセル':'地域を選択');
+}
+function touchStep(dir){
+  if(app.screen==='location'){
+    app.locCursor=(app.locCursor+dir+LOCS.length)%LOCS.length;
+  } else if(app.controlMode==='volume'){
+    setVol(app.vol+dir*5);
+  } else {
+    const next=app.stIdx+dir;
+    if(next>=0 && next<LOCS[app.locIdx].stations.length) tune(next);
+  }
+  updateControls();
+}
+ctrl.left.addEventListener('click',()=>touchStep(-1));
+ctrl.right.addEventListener('click',()=>touchStep(1));
+ctrl.mode.addEventListener('click',()=>{
+  if(app.screen==='location') confirmLoc();
+  else app.controlMode=app.controlMode==='tuning'?'volume':'tuning';
+  updateControls();
+});
+ctrl.play.addEventListener('click',()=>{
+  if(app.screen==='radio') togglePlay();
+  updateControls();
+});
+ctrl.location.addEventListener('click',()=>{
+  if(app.screen==='location') app.screen='radio';
+  else { app.locCursor=app.locIdx; app.screen='location'; }
+  updateControls();
+});
+updateControls();
 </script>
 </body>
 </html>

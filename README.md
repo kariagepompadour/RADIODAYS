@@ -40,12 +40,12 @@ Read more about the inspiration and design principles in [docs/concept.md](docs/
 
 ![USA Location selection screen, showing the globe, New York, and six stations](docs/images/RADIODAYS_4.jpeg)
 
-**Want to see it in action first? [Try the web demo.](https://kariagepompadour.github.io/RADIODAYS/radiodays-web.html)** Runs in your browser — no hardware needed.
+**Want to see it in action first? [Try the web demo.](https://kariagepompadour.github.io/RADIODAYS/radiodays-web.html)** Runs in your browser — no hardware needed. Use ◀ ▶ to tune, the TUNING / VOLUME button to make ◀ ▶ adjust the volume instead, PLAY / STOP, and LOCATION (on a PC, the keyboard works too). Because of browser security restrictions, some stations may not play in the web version; this does not affect the Cardputer.
 
 ## What you need
 
 - **M5Stack Cardputer ADV.** Keyboard controls are available even without an encoder.
-- **M5Stack Unit Encoder (U135)** for dial control, connected to the Cardputer ADV Grove port. No extra soldering or electronics work is required.
+- **M5Stack Unit Encoder (U135), optional,** for dial control, connected to the Cardputer ADV Grove port. No extra soldering or electronics work is required. Without it, the Cardputer's own keyboard does everything (tuning, volume, mute, Location).
 - **A way to receive streams:** compatible 2.4 GHz Wi-Fi (the Cardputer alone is enough), or a USB connection to a Mac or Windows PC running the relay script.
 - **Optional 3D-printed stand and knob.** The application works without them.
 
@@ -148,7 +148,7 @@ The `.cmd` file starts the script with `-ExecutionPolicy Bypass` for that one ru
 
 ### Controls
 
-**Radio screen**
+**Radio screen** (everything can be done with the keyboard alone; ◀ ▶ ↑ ↓ are the arrows printed on the `,` `/` `;` `.` keys)
 
 | Action | Encoder (U135) | Keyboard |
 | --- | --- | --- |
@@ -247,7 +247,7 @@ RADIO DAYS works without these printed parts.
 
 Most design and development notes are **in Japanese**.
 
-- [Web demo](https://kariagepompadour.github.io/RADIODAYS/radiodays-web.html) — interactive browser simulation of the Cardputer display (no hardware needed)
+- [Web demo](https://kariagepompadour.github.io/RADIODAYS/radiodays-web.html) ([source](docs/radiodays-web.html)) — interactive browser simulation of the Cardputer display, with on-screen buttons for phones (no hardware needed)
 - [Concept and design principles](docs/concept.md)
 - [Design specification](docs/design.md) and [development plan](docs/development-plan.md)
 - [U10 implementation and test notes](docs/usb-u10.md) and [U9 station/USB-relay notes](docs/usb-u9.md)

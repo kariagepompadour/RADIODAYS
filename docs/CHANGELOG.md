@@ -1,5 +1,14 @@
 # 変更履歴
 
+## ウェブデモ v4（2026-10-23、ファームウェアは変更なし）
+
+- `docs/radiodays-web.html`（GitHub Pagesで公開中のページ）をv4に更新：スマートフォンでも使える操作ボタン（◀ ▶、TUNING / VOLUME、PLAY／STOP、LOCATION）と、実機とウェブ版の操作対応表。局を切り替えても再生を続ける。STOP後も選んだ局を保持する
+- TUNING / VOLUME ボタン（表示は固定）：押すたびに◀ ▶の操作対象が選局と音量調整で切り替わり、ボタンの上に `TUNING` か `VOLUME` を表示する。AUTO／MANUALの表示（実機のAキーの機能）とは別
+- レビューでの修正：キーボードの `L` や画面のクリックで地域画面に移ったとき、操作ボタンの表示が切り替わらなかった（v4）。画面上部が常に「MANUAL」と表示されていた（ウェブ版はAUTOの動き）。時計が夏時間を反映していなかった（実機と同じく各都市の夏時間を反映）。地域画面で画面をクリックすると、縦位置で別の地域に決まっていた（選んでいる地域を決定するように）
+- 説明：U135は任意で、実機は本体のキーボードだけで操作できること、ブラウザのセキュリティ上の制約で一部の局を再生できない場合があることを、ページとREADME（英語・日本語）に記載。局のURLは変えていない
+- 再生の制約の調べ：httpsのページから `http://` の局を再生するため、ブラウザがhttpsに切り替えて接続する場合がある。42局のURLをhttpsで接続して確かめたところ（Mac、curl）、8局が応答しなかった（SomaFM 2局、WFUV、Classic FM、FM Kahoku、RNZ National、Radio Caroline、Radio 24）。**これは接続の確認で、再生の試験ではない。** 公開ページでの再生不可を実際に確かめたのはRadio 24の1局だけ（アプリ内のChromium）
+- 確認：作者がMacのSafariで画面表示とラジオの再生、Mac上でスマートフォン向けのレイアウトの表示を確認。アプリ内のChromiumで、各ボタンとキー操作、PC幅とスマートフォン幅（375 px）の表示を確認。**実際のiPhoneのSafari、実際のAndroid端末、全42局の再生は未検証**
+
 ## Windows用のUSB中継（2026-10-22、作者がWindows 11で動作を確認）
 
 - `tools/usb-relay/RadioDaysRelay_U9_Windows.ps1` と、ダブルクリック用の `RadioDaysRelay_U9_Windows.cmd` を追加。Windows 10・11に標準のWindows PowerShell 5.1で動く（インストール不要）。RADIO DAYS U9・U10用で、通信方式、内蔵の許可ホスト、転送の規則、`allowed_hosts.txt`、`--check-url`・`--check-redirect` はmacOS版の `RadioDaysRelay_U9.command` と同じ。局の受信は.NETの `TcpClient`（チャンク形式も戻す）、CardputerのCOMポートはEspressifのUSBベンダーID（`VID_303A`）で探す（`--port COMn` でも指定可）、動作中はPCのスリープを止める

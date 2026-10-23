@@ -40,12 +40,12 @@
 
 ![USAのLocation選択画面。地球儀とNEW YORK、6局の表示](docs/images/RADIODAYS_4.jpeg)
 
-**まずはウェブ版で試せます。[ウェブデモを開く →](https://kariagepompadour.github.io/RADIODAYS/radiodays-web.html)** ブラウザで動きます。実機不要。
+**まずはウェブ版で試せます。[ウェブデモを開く →](https://kariagepompadour.github.io/RADIODAYS/radiodays-web.html)** ブラウザで動きます。実機不要。◀ ▶で選局、TUNING / VOLUME ボタンで◀ ▶の操作を音量調整に切り替え、PLAY／STOP、LOCATIONで操作します（PCではキーボードも使えます）。ウェブ版では、ブラウザのセキュリティ上の制約により、一部の放送局を再生できない場合があります（実機には影響しません）。
 
 ## 用意するもの
 
 - **M5Stack Cardputer ADV**。U135がなくてもキーボードで操作できます。
-- **M5Stack Unit Encoder（U135）**：ダイヤル操作に使用。Cardputer ADVのGroveポートへ接続。追加のはんだ付けなどは不要です。
+- **M5Stack Unit Encoder（U135、任意）**：ダイヤル操作に使用。Cardputer ADVのGroveポートへ接続。追加のはんだ付けなどは不要です。なくても、本体のキーボードだけで選局・音量・ミュート・地域選択のすべてができます。
 - **音声を受信する環境**：対応する2.4 GHz Wi-Fi（Cardputerだけで聴けます）、またはUSBケーブルで接続したMacかWindows PC（中継スクリプトを使用）。
 - **3Dプリントの台座・ノブ（任意）**：後述。なくても動作します。
 
@@ -148,7 +148,7 @@ Windows版の中継は、Mac版と同じ働きをします（許可するホス�
 
 ### 操作
 
-**ラジオ画面**
+**ラジオ画面**（すべてキーボードだけで操作できます。◀ ▶ ↑ ↓は本体の `,` `/` `;` `.` キーに印刷された矢印です）
 
 | 操作 | エンコーダー（U135） | キーボード |
 | --- | --- | --- |
@@ -243,7 +243,7 @@ RADIO DAYSの標準構成は作者の選定です。好きな局や地域へ変�
 
 ## 開発資料
 
-- [ウェブデモ](https://kariagepompadour.github.io/RADIODAYS/radiodays-web.html) — Cardputerの画面をブラウザで試せるインタラクティブなデモ（実機不要）
+- [ウェブデモ](https://kariagepompadour.github.io/RADIODAYS/radiodays-web.html)（[ソース](docs/radiodays-web.html)） — Cardputerの画面をブラウザで試せるインタラクティブなデモ。スマートフォン用の操作ボタン付き（実機不要）
 - [コンセプト](docs/concept.md) — 作品の背景と設計思想
 - [設計書](docs/design.md)・[開発計画](docs/development-plan.md)
 - [U10の実装・確認記録](docs/usb-u10.md)・[U9の選局とUSB中継](docs/usb-u9.md)
